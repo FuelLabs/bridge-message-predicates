@@ -14,7 +14,7 @@ async fn spend_predicate_with_script_constraint() {
     // Set up a wallet
     let native_asset: AssetId = Default::default();
     let mut provider_config = Config::local_node();
-    //provider_config.predicates = true; // predicates are currently disabled by default
+    provider_config.predicates = true; // predicates are currently disabled by default
     let wallet = &launch_custom_provider_and_get_wallets(
         WalletsConfig::new_single(None, None),
         Some(provider_config),
