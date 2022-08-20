@@ -2,9 +2,7 @@
 
 PROJECT=$1
 
-cd $PROJECT
-forc-fmt --check
-
 if [ $PROJECT = 'contract-message-predicate' ]; then
+    cd $PROJECT
     cargo fmt --verbose --check
 fi
