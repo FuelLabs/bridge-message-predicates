@@ -3,4 +3,8 @@
 PROJECT=$1
 
 cd $PROJECT
-cargo fmt --verbose --check
+forc-fmt --check
+
+if [ $PROJECT = 'contract-message-predicate' ]; then
+    cargo fmt --verbose --check
+fi

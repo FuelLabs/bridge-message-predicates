@@ -2,7 +2,7 @@
 
 PROJECT=$1
 
-if [ $PROJECT = 'contract-message-script' ]; then
+if [ $PROJECT = 'contract-message-predicate' ]; then
     cd $PROJECT
     forc test
 fi
