@@ -27,3 +27,40 @@ If all of these conditions are met, then the predicate evaluates as true.
 The message to contract predicate relies on a script that performs only the following operations:
 - Transfer the exact amount of base asset specified in the `InputMessage` `amount` field to the contract with ID that matches the first 32 bytes in the message data field
 - Call the function `processMessage` on the contract with ID that matches the first 32 bytes in the message data field
+
+## Building From Source
+
+### Dependencies
+
+| dep     | version                                                  |
+| ------- | -------------------------------------------------------- |
+| Forc    | [>=v0.19.1](https://fuellabs.github.io/sway/v0.19.1/introduction/installation.html) |
+
+### Building
+
+Build:
+
+```sh
+forc build -p contract-message-script
+forc build -p contract-message-predicate
+```
+
+Run tests:
+
+```sh
+cd contract-message-predicate && forc test && cd ..
+```
+
+## Contributing
+
+Code must be formatted.
+
+```sh
+forc-fmt -p contract-message-script
+forc-fmt -p contract-message-predicate
+cd contract-message-predicate && cargo fmt && cd ..
+```
+
+## License
+
+The primary license for this repo is `Apache 2.0`, see [`LICENSE`](./LICENSE).
