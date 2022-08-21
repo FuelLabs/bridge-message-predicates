@@ -7,7 +7,7 @@ license = "Apache-2.0"
 
 [dependencies]
 fuel-crypto = "0.5"
-fuels = { version = "0.17", features = [] }
+fuels = { version = "0.17", features = ["fuel-core-lib"] }
 tokio = { version = "1.12", features = ["rt", "macros"] }
 
 [[test]]
