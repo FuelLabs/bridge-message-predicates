@@ -31,18 +31,14 @@ fn input_contract_id(index: u8) -> ContractId {
     let contract_id_bytes = b256_from_pointer_offset(ptr, 128); // Contract ID starts at 17th word: 16 * 8 = 128
 
     // TODO: Replace with actual contract id
-    ~ContractId::from(0xf5dbe963c235c1e54f8732f1ecdc955df2ad8db8c9ab58eea8e1338762bf8bc2)
-    //~ContractId::from(contract_id_bytes)
+    ~ContractId::from(0xf5dbe963c235c1e54f8732f1ecdc955df2ad8db8c9ab58eea8e1338762bf8bc2) //~ContractId::from(contract_id_bytes)
 }
 
 /// Get the contract ID from a message input's data
 fn contract_id_from_message_input(index: u8) -> ContractId {
-
     // TODO: Replace with actual message check once input messages are enabled in the sdk
     assert(tx_input_type(index) == INPUT_COIN);
-    ~ContractId::from(0xf5dbe963c235c1e54f8732f1ecdc955df2ad8db8c9ab58eea8e1338762bf8bc2)
-
-    /*
+    ~ContractId::from(0xf5dbe963c235c1e54f8732f1ecdc955df2ad8db8c9ab58eea8e1338762bf8bc2)/*
     // Check that input at this index is a message input
     assert(tx_input_type(index) == INPUT_MESSAGE);
 
