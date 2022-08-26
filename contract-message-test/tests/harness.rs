@@ -2,9 +2,12 @@ use fuel_crypto::Hasher;
 use fuels::contract::script::Script;
 use fuels::prelude::*;
 use fuels::test_helpers::Config;
-use fuels::tx::{AssetId, Input, Output, Transaction, UtxoId, Bytes32, Contract as tx_contract};
+use fuels::tx::{AssetId, Bytes32, Contract as tx_contract, Input, Output, Transaction, UtxoId};
 
-abigen!(TestContract, "../contract-message-test/out/debug/contract_message_test-abi.json");
+abigen!(
+    TestContract,
+    "../contract-message-test/out/debug/contract_message_test-abi.json"
+);
 
 async fn get_balance(provider: &Provider, address: Address, asset: AssetId) -> u64 {
     let balance = provider.get_asset_balance(&address, asset).await.unwrap();
@@ -48,7 +51,8 @@ async fn spend_predicate_with_script_constraint() {
         TxParameters::default(),
         StorageConfiguration::default(),
     )
-    .await.unwrap();
+    .await
+    .unwrap();
     let contract_instance = TestContract::new(test_contract_id.to_string(), wallet.clone());
     println!("Test contract_id   : 0x{:?}", test_contract_id);
 
@@ -170,6 +174,11 @@ async fn spend_predicate_with_script_constraint() {
         )
         .await
         .unwrap();
-    let test_contract_counter = contract_instance.get_test_counter().call().await.unwrap().value;
+    let test_contract_counter = contract_instance
+        .get_test_counter()
+        .call()
+        .await
+        .unwrap()
+        .value;
     assert_eq!(test_contract_counter, 1);
 }
