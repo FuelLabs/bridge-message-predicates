@@ -31,18 +31,13 @@ async fn spend_predicate_with_script_constraint() {
     let provider = wallet.get_provider().unwrap();
     let client = &provider.client;
 
-    // Get padded bytecode root that must be hardcoded into the predicate to constrain the spending transaction
-    let mut script_bytecode =
+    // Get bytecode root that must be hardcoded into the predicate to constrain the spending transaction
+    let script_bytecode =
         std::fs::read("../contract-message-script/out/debug/contract_message_script.bin")
             .unwrap()
             .to_vec();
-    let padding = script_bytecode.len() % 8;
-    let script_bytecode_unpadded = script_bytecode.clone();
-    script_bytecode.append(&mut vec![0; padding]);
-    let script_hash = Hasher::hash(&script_bytecode);
-
-    println!("Padded script length: {}", script_bytecode.len());
-    println!("Padded script hash   : 0x{:?}", script_hash);
+    let script_hash = Hasher::hash(&script_bytecode.clone());
+    println!("script hash   : 0x{:?}", script_hash);
 
     // Deploy test contract
     let test_contract_id = Contract::deploy(
@@ -152,7 +147,7 @@ async fn spend_predicate_with_script_constraint() {
         maturity: 0,
         byte_price: 0,
         receipts_root: Default::default(),
-        script: script_bytecode_unpadded,
+        script: script_bytecode,
         script_data: vec![],
         inputs: vec![input_coin, input_coin_message, input_contract],
         outputs: vec![output_variable, output_contract, output_change],
