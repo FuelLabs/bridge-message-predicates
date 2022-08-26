@@ -56,7 +56,7 @@ const TX_SCRIPT_START_OFFSET = 10352;
 /// Get the hash of the script bytecode
 pub fn tx_script_bytecode_hash() -> b256 {
     let mut result_buffer: b256 = ~b256::min();
-    
+
     asm(hash: result_buffer, script_offset: TX_SCRIPT_START_OFFSET, length_offset: TX_SCRIPT_LENGTH_OFFSET, length) {
         lw length length_offset i0; // Load the length value at the length_offset
         s256 hash script_offset length; // Hash the an array of length "length" starting from "script_offset" into "hash"

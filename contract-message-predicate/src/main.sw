@@ -4,23 +4,21 @@ dep utils;
 
 use std::contract_id::ContractId;
 use std::assert::assert;
-use std::hash::sha256;
-use std::{
-    tx::{
-        INPUT_COIN,
-        INPUT_CONTRACT,
-        INPUT_MESSAGE,
-        OUTPUT_CHANGE,
-        OUTPUT_CONTRACT,
-        OUTPUT_VARIABLE,
-        tx_script_bytecode,
-        tx_gas_limit,
-        tx_output_type,
-        tx_outputs_count,
-        tx_input_type,
-        tx_inputs_count,
-   }
+use std::tx::{
+    INPUT_COIN,
+    INPUT_CONTRACT,
+    INPUT_MESSAGE,
+    OUTPUT_CHANGE,
+    OUTPUT_CONTRACT,
+    OUTPUT_VARIABLE,
+    tx_gas_limit,
+    tx_input_type,
+    tx_inputs_count,
+    tx_output_type,
+    tx_outputs_count,
+    tx_script_bytecode,
 };
+
 use utils::{contract_id_from_contract_input, contract_id_from_message_input, tx_script_bytecode_hash};
 
 /// Predicate verifying a message input is being spent according to the rules for a valid deposit
