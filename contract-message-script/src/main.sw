@@ -1,26 +1,38 @@
 script;
 
-use contract_message_receiver::L2ERC20Gateway;
+dep utils;
+
+use contract_message_receiver::MessageReceiver;
 use std::contract_id::ContractId;
-use std::tx::{b256_from_pointer_offset, tx_input_pointer};
+use std::constants::BASE_ASSET_ID;
+use utils::{
+    input_contract_contract_id,
+    input_message_amount
+};
 
-/// Get the ID of a contract input
-/// This function is the same as the one in the predicate, except here we do not check the input is the correct type.
-/// The predicate has already checked that this input is an InputContract, so there's no need to check again
-fn input_contract_id(index: u8) -> ContractId {
-    //let ptr = tx_input_pointer(index);
-    //let contract_id_bytes = b256_from_pointer_offset(ptr, 128); // Contract ID starts at 17th word: 16 * 8 = 128
+///////////////
+// CONSTANTS //
+///////////////
 
-    // TODO: implement actual contract id getter once GTF is implemented
-    ~ContractId::from(0x310361489adf498a99dcd3b20e17b949d72c5b1dffad637600345a3dffada71e)
-}
+// The input index values
+const CONTRACT_INPUT_INDEX = 0u8;
+const MESSAGE_INPUT_INDEX = 1u8;
 
+////////////
+// SCRIPT //
+////////////
+
+/// Script that relays a message and sends the message amount to a contract
 fn main() -> bool {
-    // Get contract ID. Predicate has already checked this is an InputContract and that it corresponds to the contract ID specified in the Message data
-    let input_contract_id = input_contract_id(2);
+    // Get contract to send message to
+    let contract_id = input_contract_contract_id(CONTRACT_INPUT_INDEX);
+    let message_receiver = abi(MessageReceiver, contract_id.into());
+    let message_amount = input_message_amount(MESSAGE_INPUT_INDEX);
 
-    // Finalize the deposit on the given contract
-    let token = abi(L2ERC20Gateway, input_contract_id.into());
-    let value = token.finalize_deposit();
+    // Execute the message
+    message_receiver.process_message {
+        asset_id: BASE_ASSET_ID.into(), coins: message_amount
+    }
+    (MESSAGE_INPUT_INDEX);
     true
 }

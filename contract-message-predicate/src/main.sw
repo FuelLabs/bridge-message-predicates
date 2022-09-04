@@ -1,94 +1,168 @@
 predicate;
 
-use std::{
-    address::Address,
-    tx::{
-        INPUT_COIN,
-        INPUT_CONTRACT,
-        INPUT_MESSAGE,
-        OUTPUT_CHANGE,
-        OUTPUT_CONTRACT,
-        OUTPUT_VARIABLE,
-        b256_from_pointer_offset,
-        tx_gas_limit,
-        tx_input_pointer,
-        tx_input_type,
-        tx_inputs_count,
-        tx_output_type,
-        tx_outputs_count,
-    tx_script_bytecode}
-};
+dep utils;
 
 use std::assert::assert;
-use std::hash::sha256;
 use std::contract_id::ContractId;
+use std::tx::tx_gas_limit;
+use std::inputs::{Input, input_type, input_count};
+use std::outputs::{Output, output_type, output_count};
+use std::constants::BASE_ASSET_ID;
+use utils::{
+    tx_script_bytecode_hash,
+    input_message_data_length,
+    input_message_data,
+    input_contract_contract_id,
+    input_coin_asset_id,
+    input_coin_amount,
+    output_contract_input_index
+};
 
-/// Get the ID of a contract input
-fn input_contract_id(index: u8) -> ContractId {
-    // Check that input at this index is a contract input
-    assert(tx_input_type(index) == INPUT_CONTRACT);
-    let ptr = tx_input_pointer(index);
-    let contract_id_bytes = b256_from_pointer_offset(ptr, 128); // Contract ID starts at 17th word: 16 * 8 = 128
+///////////////
+// CONSTANTS //
+///////////////
 
-    // TODO: Replace with actual contract id
-    ~ContractId::from(0xf5dbe963c235c1e54f8732f1ecdc955df2ad8db8c9ab58eea8e1338762bf8bc2) //~ContractId::from(contract_id_bytes)
+// The minimum gas limit for the transaction not to revert out-of-gas
+const MIN_GAS = 42;
+
+// The hash of the script which must spend the input belonging to this predicate
+const SPENDING_SCRIPT_HASH = 0x1f820272c1191516cb7477d3cd1023e9768096f37f5faba79efb0adc7c764f1c;
+
+///////////
+// UTILS //
+///////////
+
+/// Verifies an input at the given index is a contract input
+fn verify_input_contract(index: u8) -> bool {
+    if let Input::Contract = input_type(index) {
+        true
+    } else {
+        false
+    }
 }
 
-/// Get the contract ID from a message input's data
-fn contract_id_from_message_input(index: u8) -> ContractId {
-    // TODO: Replace with actual message check once input messages are enabled in the sdk
-    assert(tx_input_type(index) == INPUT_COIN);
-    ~ContractId::from(0xf5dbe963c235c1e54f8732f1ecdc955df2ad8db8c9ab58eea8e1338762bf8bc2)/*
-    // Check that input at this index is a message input
-    assert(tx_input_type(index) == INPUT_MESSAGE);
-
-    let ptr = tx_input_pointer(index);
-    let contract_id_bytes = b256_from_pointer_offset(ptr, 192); // Contract ID is at start of data, which is at 24th word: 24 * 8 = 192
-    ~ContractId::from(contract_id_bytes)
-    */
+/// Verifies an input at the given index is a message input
+fn verify_input_message(index: u8) -> bool {
+    if let Input::Message = input_type(index) {
+        true
+    } else {
+        false
+    }
 }
 
-/// Predicate verifying a message input is being spent according to the rules for a valid deposit
+/// Verifies an output at the given index is a contract output
+fn verify_output_contract(index: u8) -> bool {
+    if let Output::Contract = output_type(index) {
+        true
+    } else {
+        false
+    }
+}
+
+/// Verifies an output at the given index is a change output
+fn verify_output_change(index: u8) -> bool {
+    if let Output::Change = output_type(index) {
+        true
+    } else {
+        false
+    }
+}
+
+/// Get the contract ID in the data of a message input
+fn input_message_contract_id(index: u64) -> ContractId {
+    // Length should be at least 32 bytes for the contract ID
+    let msg_data_len = input_message_data_length(index);
+    assert(msg_data_len >= 32);
+
+    // Parse the contract ID from the message data
+    let contract_id: b256 = input_message_data(index, 0);
+    ~ContractId::from(contract_id)
+}
+
+/// Verifies the input at the given index meets expectations (returns amount of base asset coins)
+fn verify_other_input(index: u8, num_inputs: u8) -> u64 {
+    let mut num_coins: u64 = 0;
+    if(index < num_inputs) {
+        match input_type(index) {
+            Input::Coin => {
+                // Coin inputs must be of the base asset
+                assert(input_coin_asset_id(index) == BASE_ASSET_ID);
+                num_coins = input_coin_amount(index);
+            },
+            Input::Contract => {
+                // Additional contract inputs are allowed
+            },
+            _ => {
+                // No other input types are allowed
+                assert(false);
+            }
+        }
+    }
+    num_coins
+}
+
+/// Verifies the output at the given index meets expectations
+fn verify_other_output(index: u8, num_outputs: u8) {
+    if(index < num_outputs) {
+        match output_type(index) {
+            Output::Contract => {
+                // Additional contract outputs are allowed
+            },
+            Output::Variable => {
+                // Any variable outputs are allowed
+            },
+            Output::Message => {
+                // Any message outputs are allowed
+            },
+            _ => {
+                // No other output types are allowed
+                assert(false);
+            }
+        }
+    }
+}
+
+///////////////
+// PREDICATE //
+///////////////
+
+/// Predicate verifying a message input is being spent according to the rules for a valid message data relay to contract
 fn main() -> bool {
-    ///////////////
-    // CONSTANTS //
-    ///////////////
-
-    // The minimum gas limit for the transaction not to revert out-of-gas.
-    const MIN_GAS = 42;
-
-    // The hash of the script which must spend the input belonging to this predicate
-    // This ensures the coins can only be spent in a call to `TokenContract.finalizeDeposit()`
-    // Note: The script must be right-padded to the next full word before hashing, to match with `get_script_bytecode()`
-    const SPENDING_SCRIPT_HASH = 0x2d235589506d17993e0b7aca4407a5ac1c325efd9d704ff94696a8f7c012ab9d;
-
-    ////////////////
-    // CONDITIONS //
-    ////////////////
-
     // Verify script bytecode hash matches
-    let script_bytcode: [u64;
-    32] = tx_script_bytecode(); // Note : Make sure length is script bytecode length rounded up to next word
-    assert(sha256(script_bytcode) == SPENDING_SCRIPT_HASH);
+    assert(tx_script_bytecode_hash() == SPENDING_SCRIPT_HASH);
 
-    // Verify gas limit is high enough
-    //TODO: does gas limit include InputMessage amount? might need to just check avail balance - InputMessage amount
+    // Verify the transaction inputs
+    let mut coin_input_total: u64 = 0;
+    let num_inputs = input_count();
+    assert(num_inputs >= 2 && num_inputs <= 8);
+    assert(verify_input_contract(0));
+    assert(verify_input_message(1));
+    assert(input_contract_contract_id(0) == input_message_contract_id(1));
+    coin_input_total += verify_other_input(2, num_inputs);
+    coin_input_total += verify_other_input(3, num_inputs);
+    coin_input_total += verify_other_input(4, num_inputs);
+    coin_input_total += verify_other_input(5, num_inputs);
+    coin_input_total += verify_other_input(6, num_inputs);
+    coin_input_total += verify_other_input(7, num_inputs);
+
+    // Verify the transaction outputs
+    let num_outputs = output_count();
+    assert(num_outputs >= 2 && num_outputs <= 8);
+    assert(verify_output_contract(0));
+    assert(verify_output_change(1));
+    assert(output_contract_input_index(0) == 0);
+    //assert(output_change_asset_id(1) == BASE_ASSET_ID); // TODO: change output data is not supported by GTF
+    verify_other_output(2, num_outputs);
+    verify_other_output(3, num_outputs);
+    verify_other_output(4, num_outputs);
+    verify_other_output(5, num_outputs);
+    verify_other_output(6, num_outputs);
+    verify_other_output(7, num_outputs);
+
+    // Verify there is a minimum amount of gas to process message
     assert(tx_gas_limit() >= MIN_GAS);
+    assert(coin_input_total >= MIN_GAS);
 
-    // Transaction must have exactly three inputs: a Coin input (for fees), a Message, and the token Contract (in that order)
-    assert(tx_inputs_count() == 3);
-    assert(tx_input_type(0) == INPUT_COIN);
-    let message_data_contract_id = contract_id_from_message_input(1);
-    let input_contract_id = input_contract_id(2);
-
-    // Check contract ID from the contract input matches the one specified in the message data
-    assert(input_contract_id == message_data_contract_id);
-
-    // Transation must have exactly 3 outputs: OutputVariable, OutputContract, and OutputChange (in that order)
-    assert(tx_outputs_count() == 3);
-    assert(tx_output_type(0) == OUTPUT_VARIABLE);
-    assert(tx_output_type(1) == OUTPUT_CONTRACT);
-    assert(tx_output_type(2) == OUTPUT_CHANGE);
-
+    // All checks have passed
     true
 }
