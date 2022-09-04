@@ -4,16 +4,13 @@ use crate::ext_sdk_provider;
 use std::mem::size_of;
 use std::str::FromStr;
 
-use fuel_crypto::Hasher;
-
 use fuels::contract::script::Script;
 use fuels::prelude::*;
 use fuels::signers::fuel_crypto::SecretKey;
 use fuels::test_helpers::Config;
-use fuels::tx::{
-    Address, AssetId, Bytes32, Contract as tx_contract, Input, MessageId, Output, Receipt,
-    Transaction, TxPointer, UtxoId, Word,
-};
+use fuels::tx::Output;
+use fuels::tx::Receipt;
+use fuels::tx::{Address, AssetId, Bytes32, Input, TxPointer, UtxoId, Word};
 
 abigen!(
     TestContract,
@@ -29,7 +26,7 @@ const TEST_RECEIVER_CONTRACT_BINARY: &str =
 pub async fn setup_environment(
     coins: Vec<(Word, AssetId)>,
     messages: Vec<(Word, Vec<u8>)>,
-) -> (WalletUnlocked, TestContract, Vec<Input>, Vec<Input>) {
+) -> (WalletUnlocked, TestContract, Input, Vec<Input>, Vec<Input>) {
     // Create secret for wallet
     const SIZE_SECRET_KEY: usize = size_of::<SecretKey>();
     const PADDING_BYTES: usize = SIZE_SECRET_KEY - size_of::<u64>();
@@ -116,31 +113,62 @@ pub async fn setup_environment(
     // Build inputs for provided messages
     let message_inputs: Vec<Input> = all_messages
         .iter()
-        .map(|message| {
-            let mut hasher = Hasher::default();
-            hasher.input(message.sender);
-            hasher.input(message.recipient);
-            hasher.input(message.nonce.to_be_bytes());
-            hasher.input(message.owner);
-            hasher.input(message.amount.to_be_bytes());
-            hasher.input(&message.data);
-            let hash_message_id = MessageId::from(*hasher.digest());
-
-            Input::MessagePredicate {
-                message_id: hash_message_id,
-                sender: Address::from(message.sender.clone()),
-                recipient: Address::from(message.recipient.clone()),
-                amount: message.amount,
-                nonce: message.nonce,
-                owner: Address::from(message.owner.clone()),
-                data: message.data.clone(),
-                predicate: predicate_bytecode.clone(),
-                predicate_data: vec![],
-            }
+        .map(|message| Input::MessagePredicate {
+            message_id: message.id(),
+            sender: Address::from(message.sender.clone()),
+            recipient: Address::from(message.recipient.clone()),
+            amount: message.amount,
+            nonce: message.nonce,
+            owner: Address::from(message.owner.clone()),
+            data: message.data.clone(),
+            predicate: predicate_bytecode.clone(),
+            predicate_data: vec![],
         })
         .collect();
 
-    (wallet, test_contract, coin_inputs, message_inputs)
+    // Build contract input
+    let contract_input = Input::Contract {
+        utxo_id: UtxoId::new(Bytes32::zeroed(), 0u8),
+        balance_root: Bytes32::zeroed(),
+        state_root: Bytes32::zeroed(),
+        tx_pointer: TxPointer::default(),
+        contract_id: test_contract_id.into(),
+    };
+
+    (
+        wallet,
+        test_contract,
+        contract_input,
+        coin_inputs,
+        message_inputs,
+    )
+}
+
+/// Relays a message-to-contract message
+pub async fn relay_message_to_contract(
+    wallet: &WalletUnlocked,
+    message: Input,
+    contract: Input,
+    gas_coins: &[Input],
+    optional_outputs: &[Output],
+) -> Vec<Receipt> {
+    // Get provider and client
+    let provider = wallet.get_provider().unwrap();
+
+    // Build transaction
+    let mut tx = ext_sdk_provider::build_contract_message_tx(
+        message,
+        contract,
+        gas_coins,
+        optional_outputs,
+        TxParameters::default(),
+    )
+    .await;
+
+    // Sign transaction and call
+    wallet.sign_transaction(&mut tx).await.unwrap();
+    let script = Script::new(tx);
+    script.call(provider).await.unwrap()
 }
 
 /// Prefixes the given bytes with the test contract ID
@@ -160,3 +188,78 @@ pub async fn prefix_contract_id(data: Vec<u8>) -> Vec<u8> {
     test_contract_id.append(&mut data.clone());
     test_contract_id
 }
+
+/*
+/// Build a contract message relayer transaction with the given input coins and outputs
+/// note: unspent gas is returned to the owner of the first given gas input
+pub async fn build_contract_message_tx(
+    message_id: (Word, Vec<u8>),
+    contract_id: ContractId,
+    gas_coins: &[Input],
+    optional_outputs: &[Output],
+    params: TxParameters
+) -> Transaction {
+    let min_gas = 100000;
+
+    // Get the script for contract messages
+    let (script_bytecode, _) = get_contract_message_script().await;
+
+    // Start building tx list of inputs/outputs
+    let mut tx_inputs: Vec<Input> = Vec::new();
+    let mut tx_outputs: Vec<Output> = Vec::new();
+
+    // Build the contract input/outputs
+    tx_inputs.push(Input::Contract {
+        utxo_id: UtxoId::new(Bytes32::zeroed(), 0u8),
+        balance_root: Bytes32::zeroed(),
+        state_root: Bytes32::zeroed(),
+        tx_pointer: TxPointer::default(),
+        contract_id,
+    });
+    tx_outputs.push(Output::Contract {
+        input_index: 0u8,
+        balance_root: Bytes32::zeroed(),
+        state_root: Bytes32::zeroed(),
+    });
+
+    // Build the message input
+    let input_message = build_contract_message_input(message_id).await;
+    tx_inputs.push(input_message);
+
+    // Build a change output for the owner of the first provided coin input
+    if !gas_coins.is_empty() {
+        let coin: &Input = &gas_coins[0];
+        match coin {
+            Input::CoinSigned{owner, ..} | Input::CoinPredicate{owner, ..} => {
+                // Add change output
+                tx_outputs.push(Output::Change {
+                    to: owner.clone(),
+                    amount: 0,
+                    asset_id: AssetId::default(),
+                });
+            },
+            _ => {
+                // do nothing
+            }
+        }
+    }
+
+    // Append provided inputs and outputs
+    tx_inputs.append(&mut gas_coins.to_vec());
+    tx_outputs.append(&mut optional_outputs.to_vec());
+
+    // Create the trnsaction
+    Transaction::Script {
+        gas_price: params.gas_price,
+        gas_limit: min_gas,
+        maturity: params.maturity,
+        receipts_root: Default::default(),
+        script: script_bytecode,
+        script_data: vec![],
+        inputs: tx_inputs,
+        outputs: tx_outputs,
+        witnesses: vec![],
+        metadata: None,
+    }
+}
+*/

@@ -2,19 +2,12 @@
  * This module contains functions that should eventually
  * be made part of the fuels-rs sdk repo.
  */
-use std::str::FromStr;
-
 use fuel_crypto::Hasher;
 
-use fuels::contract::script::Script;
 use fuels::prelude::*;
-use fuels::tx::{
-    Address, AssetId, Bytes32, Contract as tx_contract, Input, MessageId, Output, Receipt,
-    Transaction, TxPointer, UtxoId, Word,
-};
+use fuels::tx::{Address, AssetId, Bytes32, Contract as tx_contract, Input, Output, Transaction};
 
-const MESSAGE_SENDER_ADDRESS: &str =
-    "0xca400d3e7710eee293786830755278e6d2b9278b4177b8b1a896ebd5f55c10bc";
+const CONTRACT_MESSAGE_MIN_GAS: u64 = 100_000;
 const CONTRACT_MESSAGE_SCRIPT_BINARY: &str =
     "../contract-message-script/out/debug/contract_message_script.bin";
 const CONTRACT_MESSAGE_PREDICATE_BINARY: &str =
@@ -34,120 +27,30 @@ pub async fn get_contract_message_predicate() -> (Vec<u8>, Address) {
     (predicate_bytecode, predicate_root)
 }
 
-/// Relays the given test message to the given test contract
-pub async fn relay_test_contract_message(
-    wallet: &WalletUnlocked,
-    message_id: (Word, Vec<u8>),
-    contract_id: ContractId,
-) -> Vec<Receipt> {
-    let min_gas = 1000;
-    let native_asset: AssetId = Default::default();
-
-    // Get provider and client
-    let provider = wallet.get_provider().unwrap();
-
-    // Get coins for gas
-    let gas_coins = provider
-        .get_spendable_coins(&wallet.address(), native_asset, min_gas)
-        .await
-        .unwrap();
-    let gas_coins: Vec<Input> = gas_coins
-        .into_iter()
-        .map(|coin| Input::CoinSigned {
-            utxo_id: UtxoId::from(coin.utxo_id.clone()),
-            owner: Address::from(coin.owner.clone()),
-            amount: coin.amount.clone().into(),
-            asset_id: AssetId::from(coin.asset_id.clone()),
-            tx_pointer: TxPointer::default(),
-            witness_index: 0,
-            maturity: 0,
-        })
-        .collect();
-
-    // Message processing for this test message needs a variable output
-    let output_variable = Output::Variable {
-        to: Address::default(),
-        amount: 0,
-        asset_id: AssetId::default(),
-    };
-
-    let mut tx = build_contract_message_tx(
-        message_id,
-        contract_id,
-        &gas_coins[..],
-        &vec![output_variable],
-        TxParameters::default(),
-    )
-    .await;
-    wallet.sign_transaction(&mut tx).await.unwrap();
-    let script = Script::new(tx);
-    script.call(provider).await.unwrap()
-}
-
-/// Build an input contract given the message details
-// TODO: [SDK] eventually just use MessageId to identify a message and query the client for the message details
-pub async fn build_contract_message_input(message_id: (Word, Vec<u8>)) -> Input {
-    let nonce: Word = Word::default();
-    let sender = Address::from_str(MESSAGE_SENDER_ADDRESS).unwrap();
-    let (predicate_bytecode, predicate_root) = get_contract_message_predicate().await;
-
-    let mut hasher = Hasher::default();
-    hasher.input(sender);
-    hasher.input(predicate_root);
-    hasher.input(nonce.to_be_bytes());
-    hasher.input(predicate_root);
-    hasher.input(message_id.0.to_be_bytes());
-    hasher.input(&message_id.1);
-    let hash_message_id = MessageId::from(*hasher.digest());
-
-    Input::MessagePredicate {
-        message_id: hash_message_id,
-        sender,
-        recipient: predicate_root,
-        amount: message_id.0,
-        nonce,
-        owner: predicate_root,
-        data: message_id.1,
-        predicate: predicate_bytecode,
-        predicate_data: vec![],
-    }
-}
-
-/// Build a contract message relayer transaction with the given input coins and outputs
+/// Build a message-to-contract transaction with the given input coins and outputs
 /// note: unspent gas is returned to the owner of the first given gas input
 pub async fn build_contract_message_tx(
-    message_id: (Word, Vec<u8>),
-    contract_id: ContractId,
+    message: Input,
+    contract: Input,
     gas_coins: &[Input],
     optional_outputs: &[Output],
     params: TxParameters,
 ) -> Transaction {
-    let min_gas = 100000;
-
-    // Get the script for contract messages
+    // Get the script and predicate for contract messages
     let (script_bytecode, _) = get_contract_message_script().await;
 
-    // Start building tx list of inputs/outputs
+    // Start building tx list of inputs
     let mut tx_inputs: Vec<Input> = Vec::new();
-    let mut tx_outputs: Vec<Output> = Vec::new();
+    tx_inputs.push(contract);
+    tx_inputs.push(message);
 
-    // Build the contract input/outputs
-    tx_inputs.push(Input::Contract {
-        utxo_id: UtxoId::new(Bytes32::zeroed(), 0u8),
-        balance_root: Bytes32::zeroed(),
-        state_root: Bytes32::zeroed(),
-        tx_pointer: TxPointer::default(),
-        contract_id,
-    });
+    // Start building tx list of outputs
+    let mut tx_outputs: Vec<Output> = Vec::new();
     tx_outputs.push(Output::Contract {
         input_index: 0u8,
         balance_root: Bytes32::zeroed(),
         state_root: Bytes32::zeroed(),
     });
-
-    // Build the message input
-    let input_message = build_contract_message_input(message_id).await;
-    tx_inputs.push(input_message);
 
     // Build a change output for the owner of the first provided coin input
     if !gas_coins.is_empty() {
@@ -174,7 +77,7 @@ pub async fn build_contract_message_tx(
     // Create the trnsaction
     Transaction::Script {
         gas_price: params.gas_price,
-        gas_limit: min_gas,
+        gas_limit: CONTRACT_MESSAGE_MIN_GAS,
         maturity: params.maturity,
         receipts_root: Default::default(),
         script: script_bytecode,
@@ -185,3 +88,72 @@ pub async fn build_contract_message_tx(
         metadata: None,
     }
 }
+
+/*
+/// Build an input message for a message-to-contract message
+pub async fn build_contract_message_input(message: Message) -> Input {
+    let (predicate_bytecode, _) = get_contract_message_predicate().await;
+    build_input_message_predicate(message, predicate_bytecode, vec![])
+}
+
+/// Build an input message given the message details
+pub fn build_input_message_predicate(message: Message, predicate: Vec<u8>, predicate_data: Vec<u8>) -> Input {
+    let sender: Address = message.sender.into();
+    let recipient: Address = message.recipient.into();
+    let nonce: Word = message.nonce.into();
+    let owner: Address = message.owner.into();
+    let amount: u64 = message.amount.into();
+    let data: Vec<u8> = message.data.iter().map(|d| {
+        let byte: u8 = *d as u8;
+        byte
+    }).collect();
+
+    let mut hasher = Hasher::default();
+    hasher.input(sender);
+    hasher.input(recipient);
+    hasher.input(nonce.to_be_bytes());
+    hasher.input(owner);
+    hasher.input(amount.to_be_bytes());
+    hasher.input(&data);
+    let message_id = MessageId::from(*hasher.digest());
+
+    Input::MessagePredicate {
+        message_id,
+        sender,
+        recipient,
+        amount,
+        nonce,
+        owner,
+        data,
+        predicate,
+        predicate_data,
+    }
+}
+
+/// Gets unspent messages sent to the given recipient
+pub async fn get_messages(
+    provider: &Provider,
+    recipient: &Bech32Address,
+) -> Result<Vec<Message>, ProviderError> {
+    let mut messages: Vec<Message> = vec![];
+
+    let mut cursor = None;
+
+    loop {
+        let pagination = PaginationRequest {
+            cursor: cursor.clone(),
+            results: 9999,
+            direction: PageDirection::Forward,
+        };
+        let res = provider.client.messages(Some(&recipient.hash().to_string()), pagination).await?;
+
+        if res.results.is_empty() {
+            break;
+        }
+        messages.extend(res.results);
+        cursor = res.cursor;
+    }
+
+    Ok(messages)
+}
+*/

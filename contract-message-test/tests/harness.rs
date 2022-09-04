@@ -8,7 +8,7 @@ use utils::ext_fuel_core;
 use utils::ext_sdk_provider;
 
 use fuels::test_helpers::DEFAULT_COIN_AMOUNT;
-use fuels::tx::{ContractId, AssetId};
+use fuels::tx::{AssetId, ContractId};
 
 #[tokio::test]
 async fn report_data() {
@@ -26,27 +26,33 @@ async fn relay_message_with_predicate_and_script_constraint() {
     let coin = (DEFAULT_COIN_AMOUNT, AssetId::default());
 
     // Set up the environment
-    let (wallet, test_contract, coin_inputs, message_inputs) =
+    let (wallet, test_contract, contract_input, coin_inputs, message_inputs) =
         env::setup_environment(vec![coin.clone()], vec![message.clone()]).await;
 
     // Relay the test message to the test contract
-    let _receipts = ext_sdk_provider::relay_test_contract_message(
+    let _receipts = env::relay_message_to_contract(
         &wallet,
-        message.clone(),
-        test_contract._get_contract_id().into(),
+        message_inputs[0].clone(),
+        contract_input,
+        &coin_inputs[..],
+        &vec![],
     )
     .await;
 
-    //////////////////////////////////////////////////////////////////////////
-    let provider = wallet.get_provider().unwrap();
-    let test_contract_id: ContractId = test_contract._get_contract_id().into();
-    println!("test_contract_id: {:#?}", test_contract_id);
-    let test_contract_data1 = test_contract.get_test_data1().call().await.unwrap().value;
-    println!("test_contract_data1: {:#?}", test_contract_data1);
-    let test_contract_balance = provider.get_contract_asset_balance(test_contract._get_contract_id(), AssetId::default()).await.unwrap();
-    println!("test_contract_balance: {:#?}", test_contract_balance);
-
-    // Verify test contract counter was incremented
+    // Verify test contract received the message
     let test_contract_counter = test_contract.get_test_counter().call().await.unwrap().value;
     assert_eq!(test_contract_counter, 1);
+
+    // Verify test contract received the correct data
+    let test_contract_id: ContractId = test_contract._get_contract_id().into();
+    let test_contract_data1 = test_contract.get_test_data1().call().await.unwrap().value;
+    assert_eq!(test_contract_data1, test_contract_id);
+
+    // Verify the message value was received by the test contract
+    let provider = wallet.get_provider().unwrap();
+    let test_contract_balance = provider
+        .get_contract_asset_balance(test_contract._get_contract_id(), AssetId::default())
+        .await
+        .unwrap();
+    assert_eq!(test_contract_balance, 100);
 }
