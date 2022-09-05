@@ -23,7 +23,8 @@ use utils::{
 ///////////////
 
 // The minimum gas limit for the transaction not to revert out-of-gas
-const MIN_GAS = 42;
+// TODO: research what gas amount is reasonable
+const MIN_GAS = 1_200_000;
 
 // The hash of the script which must spend the input belonging to this predicate
 const SPENDING_SCRIPT_HASH = 0x1f820272c1191516cb7477d3cd1023e9768096f37f5faba79efb0adc7c764f1c;

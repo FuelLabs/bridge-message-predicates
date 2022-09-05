@@ -7,7 +7,7 @@ use fuel_crypto::Hasher;
 use fuels::prelude::*;
 use fuels::tx::{Address, AssetId, Bytes32, Contract as tx_contract, Input, Output, Transaction};
 
-const CONTRACT_MESSAGE_MIN_GAS: u64 = 100_000;
+const CONTRACT_MESSAGE_MIN_GAS: u64 = 1_200_000;
 const CONTRACT_MESSAGE_SCRIPT_BINARY: &str =
     "../contract-message-script/out/debug/contract_message_script.bin";
 const CONTRACT_MESSAGE_PREDICATE_BINARY: &str =
@@ -33,6 +33,7 @@ pub async fn build_contract_message_tx(
     message: Input,
     contract: Input,
     gas_coins: &[Input],
+    optional_inputs: &[Input],
     optional_outputs: &[Output],
     params: TxParameters,
 ) -> Transaction {
@@ -72,12 +73,13 @@ pub async fn build_contract_message_tx(
 
     // Append provided inputs and outputs
     tx_inputs.append(&mut gas_coins.to_vec());
+    tx_inputs.append(&mut optional_inputs.to_vec());
     tx_outputs.append(&mut optional_outputs.to_vec());
 
     // Create the trnsaction
     Transaction::Script {
         gas_price: params.gas_price,
-        gas_limit: CONTRACT_MESSAGE_MIN_GAS,
+        gas_limit: CONTRACT_MESSAGE_MIN_GAS * 10,
         maturity: params.maturity,
         receipts_root: Default::default(),
         script: script_bytecode,
