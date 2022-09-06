@@ -2,6 +2,7 @@ use crate::ext_fuel_core;
 use crate::ext_sdk_provider;
 
 use std::mem::size_of;
+use std::num::ParseIntError;
 use std::str::FromStr;
 
 use fuels::contract::script::Script;
@@ -198,48 +199,11 @@ pub async fn prefix_contract_id(data: Vec<u8>) -> Vec<u8> {
     test_contract_id
 }
 
-/// Helper function to pretty print breakdown of a given transaction
-pub fn print_tx_inputs_outputs(tx: &Transaction) {
-    print!("INPUTS[");
-    for input in tx.inputs() {
-        match input {
-            Input::CoinSigned { .. } => {
-                print!("Coin,");
-            }
-            Input::CoinPredicate { .. } => {
-                print!("Coin,");
-            }
-            Input::Contract { .. } => {
-                print!("Contract,");
-            }
-            Input::MessageSigned { .. } => {
-                print!("Message,");
-            }
-            Input::MessagePredicate { .. } => {
-                print!("Message,");
-            }
-        }
-    }
-    print!("], OUTPUTS[");
-    for output in tx.outputs() {
-        match output {
-            Output::Coin { .. } => {
-                print!("Coin,");
-            }
-            Output::Contract { .. } => {
-                print!("Contract,");
-            }
-            Output::Message { .. } => {
-                print!("Message,");
-            }
-            Output::Change { .. } => {
-                print!("Change,");
-            }
-            Output::Variable { .. } => {
-                print!("Variable,");
-            }
-            _ => {}
-        }
-    }
-    println!("]");
+/// Quickly converts the given hex string into a u8 vector
+pub fn decode_hex(s: &str) -> Vec<u8> {
+    let data: Result<Vec<u8>, ParseIntError> = (2..s.len())
+        .step_by(2)
+        .map(|i| u8::from_str_radix(&s[i..i + 2], 16))
+        .collect();
+    data.unwrap()
 }

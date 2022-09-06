@@ -37,16 +37,16 @@ impl MessageReceiver for Contract {
         if(data_length >= 32) {
             let contract_id: b256 = input_message_data(msg_idx, 0);
             storage.data1 = ~ContractId::from(contract_id);
-    
-        } else if(data_length >= 32 + 8) {
+        }
+        if(data_length >= 32 + 8) {
             let num: u64 = input_message_data(msg_idx, 32);
             storage.data2 = num;
-
-        } else if(data_length >= 32 + 8 + 32) {
+        }
+        if(data_length >= 32 + 8 + 32) {
             let big_num: b256 = input_message_data(msg_idx, 32 + 8);
             storage.data3 = big_num;
-
-        } else if(data_length >= 32 + 8 + 32 + 32) {
+        }
+        if(data_length >= 32 + 8 + 32 + 32) {
             let address: b256 = input_message_data(msg_idx, 32 + 8 + 32);
             storage.data4 = ~Address::from(address);
         }

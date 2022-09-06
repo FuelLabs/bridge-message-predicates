@@ -22,6 +22,7 @@ use fuels::test_helpers::DEFAULT_COIN_AMOUNT;
 use fuels::tx::{Address, AssetId, Bytes32, ContractId, Word};
 
 pub const RANDOM_SALT: &str = "0x1a896ebd5f55c10bc830755278e6d2b9278b4177b8bca400d3e7710eee293786";
+pub const RANDOM_SALT2: &str = "0xd5f55c10bc830755278e6d2b9278b4177b8bca401a896eb0d3e7710eee293786";
 
 ///////////////////
 // SUCCESS CASES //
@@ -29,7 +30,13 @@ pub const RANDOM_SALT: &str = "0x1a896ebd5f55c10bc830755278e6d2b9278b4177b8bca40
 
 #[tokio::test]
 async fn relay_message_with_predicate_and_script_constraint() {
-    let message_data = env::prefix_contract_id(vec![]).await;
+    let data_word = 54321u64;
+    let data_bytes = Bytes32::from_str(RANDOM_SALT).unwrap();
+    let data_address = Address::from_str(RANDOM_SALT2).unwrap();
+    let mut message_data = data_word.to_be_bytes().to_vec();
+    message_data.append(&mut env::decode_hex(RANDOM_SALT));
+    message_data.append(&mut env::decode_hex(RANDOM_SALT2));
+    let message_data = env::prefix_contract_id(message_data).await;
     let message = (100, message_data);
     let coin = (DEFAULT_COIN_AMOUNT, AssetId::default());
 
@@ -56,6 +63,12 @@ async fn relay_message_with_predicate_and_script_constraint() {
     let test_contract_id: ContractId = test_contract._get_contract_id().into();
     let test_contract_data1 = test_contract.get_test_data1().call().await.unwrap().value;
     assert_eq!(test_contract_data1, test_contract_id);
+    let test_contract_data2 = test_contract.get_test_data2().call().await.unwrap().value;
+    assert_eq!(test_contract_data2, data_word);
+    let test_contract_data3 = test_contract.get_test_data3().call().await.unwrap().value;
+    assert_eq!(test_contract_data3, data_bytes.to_vec()[..]);
+    let test_contract_data4 = test_contract.get_test_data4().call().await.unwrap().value;
+    assert_eq!(test_contract_data4, data_address);
 
     // Verify the message value was received by the test contract
     let provider = wallet.get_provider().unwrap();
@@ -227,8 +240,6 @@ async fn relay_message_with_too_many_inputs() {
 
     // Sign transaction and call
     // Note: tx inputs[contract, message, coin1, coin2, coin3, coin4, coin5, coin6, coin7], tx outputs[contract, change]
-    print!("Executing tx for 'relay_message_with_too_many_inputs': ");
-    env::print_tx_inputs_outputs(&tx);
     let _receipts = env::sign_and_call_tx(&wallet, &mut tx).await;
 }
 
@@ -278,30 +289,53 @@ async fn relay_message_with_missing_input_contract() {
 
     // Sign transaction and call
     // Note: tx inputs[coin2, message, coin1, contract], tx outputs[contract, change]
-    print!("Executing tx for 'relay_message_with_missing_input_contract': ");
-    env::print_tx_inputs_outputs(&tx);
     let _receipts = env::sign_and_call_tx(&wallet, &mut tx).await;
 }
 
 #[tokio::test]
-#[should_panic]
-//#[should_panic(expected = "The transaction contains a predicate which failed to validate")]
+//#[should_panic]
+#[should_panic(expected = "The transaction contains a predicate which failed to validate")]
 async fn relay_message_with_missing_input_message() {
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////// TODO: This seems to be failing in the script on 'input_message_amount' /////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    let coin1 = (DEFAULT_COIN_AMOUNT, AssetId::default());
-    let coin2 = (DEFAULT_COIN_AMOUNT, AssetId::default());
+    let coin = (DEFAULT_COIN_AMOUNT, AssetId::default());
 
     // Set up the environment
     let (wallet, _, contract_input, coin_inputs, _) =
-        env::setup_environment(vec![coin1, coin2], vec![]).await;
+        env::setup_environment(vec![coin], vec![]).await;
+
+    // Transfer coins to a coin with the predicate as an owner
+    let (predicate_bytecode, predicate_root) =
+        ext_sdk_provider::get_contract_message_predicate().await;
+    let _receipt = wallet
+        .transfer(
+            &predicate_root.into(),
+            100,
+            AssetId::default(),
+            TxParameters::default(),
+        )
+        .await
+        .unwrap();
+    let predicate_coin = &wallet
+        .get_provider()
+        .unwrap()
+        .get_coins(&predicate_root.into(), AssetId::default())
+        .await
+        .unwrap()[0];
+    let coin_as_message = Input::CoinPredicate {
+        utxo_id: UtxoId::from(predicate_coin.utxo_id.clone()),
+        owner: predicate_root,
+        amount: 100,
+        asset_id: AssetId::default(),
+        tx_pointer: TxPointer::default(),
+        maturity: 0,
+        predicate: predicate_bytecode,
+        predicate_data: vec![],
+    };
 
     // Build the message relaying transaction
     let mut tx = ext_sdk_provider::build_contract_message_tx(
-        coin_inputs[0].clone(),
+        coin_as_message,
         contract_input,
-        &coin_inputs[1..2],
+        &coin_inputs,
         &vec![],
         &vec![],
         TxParameters::default(),
@@ -309,9 +343,7 @@ async fn relay_message_with_missing_input_message() {
     .await;
 
     // Sign transaction and call
-    // Note: tx inputs[contract, coin1, coin2], tx outputs[contract, change]
-    print!("Executing tx for 'relay_message_with_missing_input_message': ");
-    env::print_tx_inputs_outputs(&tx);
+    // Note: tx inputs[contract, coin_message, coin], tx outputs[contract, change]
     let _receipts = env::sign_and_call_tx(&wallet, &mut tx).await;
 }
 
@@ -339,8 +371,6 @@ async fn relay_message_with_mismatched_contract_ids() {
 
     // Sign transaction and call
     // Note: tx inputs[contract, message, coin], tx outputs[contract, change]
-    print!("Executing tx for 'relay_message_with_mismatched_contract_ids': ");
-    env::print_tx_inputs_outputs(&tx);
     let _receipts = env::sign_and_call_tx(&wallet, &mut tx).await;
 }
 
@@ -370,8 +400,6 @@ async fn relay_message_with_multiple_message_inputs() {
 
     // Sign transaction and call
     // Note: tx inputs[contract, message1, coin, message2], tx outputs[contract, change]
-    print!("Executing tx for 'relay_message_with_multiple_message_inputs': ");
-    env::print_tx_inputs_outputs(&tx);
     let _receipts = env::sign_and_call_tx(&wallet, &mut tx).await;
 }
 
@@ -407,8 +435,6 @@ async fn relay_message_with_invalid_coin_assets() {
 
     // Sign transaction and call
     // Note: tx inputs[contract, message, coin1, coin2], tx outputs[contract, change, coin2]
-    print!("Executing tx for 'relay_message_with_invalid_coin_assets': ");
-    env::print_tx_inputs_outputs(&tx);
     let _receipts = env::sign_and_call_tx(&wallet, &mut tx).await;
 }
 
@@ -444,8 +470,6 @@ async fn relay_message_with_invalid_change_output() {
 
     // Sign transaction and call
     // Note: tx inputs[contract, message, coin1, coin2], tx outputs[contract, change, change2]
-    print!("Executing tx for 'relay_message_with_invalid_change_output': ");
-    env::print_tx_inputs_outputs(&tx);
     let _receipts = env::sign_and_call_tx(&wallet, &mut tx).await;
 }
 
@@ -479,11 +503,10 @@ async fn relay_message_with_missing_output_contract() {
     .await;
 
     // Modify the transaction
-    // Note: tx inputs[contract, message, coin], tx outputs[contract, change, variable]
     let inputs_length = tx.inputs().len();
     match &mut tx {
         Transaction::Script { outputs, .. } => {
-            // Swap the output contract with 'variable' at the end
+            // Swap the output contract at the start with the coutput variable at the end
             outputs.swap(0, inputs_length - 1);
         }
         _ => {}
@@ -491,8 +514,6 @@ async fn relay_message_with_missing_output_contract() {
 
     // Sign transaction and call
     // Note: tx inputs[contract, message, coin], tx outputs[variable, change, contract]
-    print!("Executing tx for 'relay_message_with_missing_output_contract': ");
-    env::print_tx_inputs_outputs(&tx);
     let _receipts = env::sign_and_call_tx(&wallet, &mut tx).await;
 }
 
@@ -526,11 +547,10 @@ async fn relay_message_with_missing_output_change() {
     .await;
 
     // Modify the transaction
-    // Note: tx inputs[contract, message, coin], tx outputs[contract, change, variable]
     let inputs_length = tx.inputs().len();
     match &mut tx {
         Transaction::Script { outputs, .. } => {
-            // Swap the output change with 'variable' at the end
+            // Swap the output change with the output variable at the end
             outputs.swap(1, inputs_length - 1);
         }
         _ => {}
@@ -538,8 +558,6 @@ async fn relay_message_with_missing_output_change() {
 
     // Sign transaction and call
     // Note: tx inputs[contract, message, coin], tx outputs[contract, variable, change]
-    print!("Executing tx for 'relay_message_with_missing_output_change': ");
-    env::print_tx_inputs_outputs(&tx);
     let _receipts = env::sign_and_call_tx(&wallet, &mut tx).await;
 }
 
@@ -575,8 +593,6 @@ async fn relay_message_with_too_many_outputs() {
 
     // Sign transaction and call
     // Note: tx inputs[contract, message, coin], tx outputs[contract, change, message1, message2, message3, message4, message5, message6, message7]
-    print!("Executing tx for 'relay_message_with_too_many_outputs': ");
-    env::print_tx_inputs_outputs(&tx);
     let _receipts = env::sign_and_call_tx(&wallet, &mut tx).await;
 }
 
@@ -604,8 +620,6 @@ async fn relay_message_with_too_little_gas() {
 
     // Sign transaction and call
     // Note: tx inputs[contract, message, coin], tx outputs[contract, change]
-    print!("Executing tx for 'relay_message_with_too_little_gas': ");
-    env::print_tx_inputs_outputs(&tx);
     let _receipts = env::sign_and_call_tx(&wallet, &mut tx).await;
 }
 
@@ -641,7 +655,5 @@ async fn relay_message_with_invalid_script() {
 
     // Sign transaction and call
     // Note: tx inputs[contract, message, coin], tx outputs[contract, change]
-    print!("Executing tx for 'relay_message_with_invalid_script': ");
-    env::print_tx_inputs_outputs(&tx);
     let _receipts = env::sign_and_call_tx(&wallet, &mut tx).await;
 }
