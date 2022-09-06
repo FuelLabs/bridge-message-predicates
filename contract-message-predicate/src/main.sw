@@ -147,12 +147,13 @@ fn main() -> bool {
     coin_input_total += verify_other_input(7, num_inputs);
 
     // Verify the transaction outputs
+    // note: the OutputChange at index 1 is guaranteed to be for the base asset 
+    // since no other OutputChange are allowed and tx wouldn't validate if otherwise
     let num_outputs = output_count();
     assert(num_outputs >= 2 && num_outputs <= 8);
     assert(verify_output_contract(0));
     assert(verify_output_change(1));
     assert(output_contract_input_index(0) == 0);
-    //assert(output_change_asset_id(1) == BASE_ASSET_ID); // TODO: change output data is not supported by GTF
     verify_other_output(2, num_outputs);
     verify_other_output(3, num_outputs);
     verify_other_output(4, num_outputs);

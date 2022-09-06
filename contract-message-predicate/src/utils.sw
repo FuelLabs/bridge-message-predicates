@@ -59,12 +59,6 @@ pub fn input_coin_amount(index: u64) -> u64 {
     __gtf::<u64>(index, GTF_INPUT_COIN_AMOUNT)
 }
 
-/// Get the asset ID of a change output
-// TODO: [std-lib] replace with 'output_change_asset_id'
-//pub fn output_change_asset_id(index: u64) -> ContractId {
-//    BASE_ASSET_ID
-//}
-
 /// Get the input index of a change output
 // TODO: [std-lib] replace with 'output_contract_input_index'
 pub fn output_contract_input_index(index: u64) -> u8 {

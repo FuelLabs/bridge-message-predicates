@@ -1,6 +1,7 @@
 /**
- * This module contains functions that should eventually
- * be made part of the fuels-rs sdk repo.
+ * TODO: This module contains functions that should eventually
+ * be made part of the fuels-rs sdk repo as part of the Provider 
+ * implementation, similar to functions like 'build_transfer_tx'
  */
 use fuel_crypto::Hasher;
 
@@ -91,7 +92,10 @@ pub async fn build_contract_message_tx(
     }
 }
 
+
 /*
+ * TODO: the functions commented out below could be useful to include in the fuels-rs SDK somewhere
+ * 
 /// Build an input message for a message-to-contract message
 pub async fn build_contract_message_input(message: Message) -> Input {
     let (predicate_bytecode, _) = get_contract_message_predicate().await;

@@ -1,6 +1,6 @@
 /**
- * This module contains functions that should eventually
- * be made part of the fuel-core repo.
+ * TODO: This module contains functions that should eventually
+ * be made part of the fuel-core repo in test-helpers lib.rs
  */
 use std::net::SocketAddr;
 
