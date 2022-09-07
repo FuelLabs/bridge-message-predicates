@@ -16,7 +16,7 @@ use fuels::tx::{Address, AssetId, Bytes32, Input, TxPointer, UtxoId, Word};
 
 abigen!(
     TestContract,
-    "../contract-message-test/out/debug/contract_message_test-flat-abi.json"
+    "../contract-message-test/out/debug/contract_message_test-abi.json"
 );
 
 pub const MESSAGE_SENDER_ADDRESS: &str =
