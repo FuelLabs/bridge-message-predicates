@@ -21,7 +21,7 @@ pub fn tx_script_bytecode_hash() -> b256 {
     let mut result_buffer: b256 = ZERO_B256;
     let script_length = __gtf::<u64>(0, GTF_SCRIPT_SCRIPT_LENGTH);
     let script_ptr = __gtf::<u64>(0, GTF_SCRIPT_SCRIPT);
-    
+
     // Run the hash opcode for the script in memory
     asm(hash: result_buffer, ptr: script_ptr, len: script_length) {
         s256 hash ptr len;

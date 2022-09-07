@@ -5,17 +5,17 @@ dep utils;
 use std::assert::assert;
 use std::contract_id::ContractId;
 use std::tx::tx_gas_limit;
-use std::inputs::{Input, input_type, input_count};
-use std::outputs::{Output, output_type, output_count};
+use std::inputs::{Input, input_count, input_type};
+use std::outputs::{Output, output_count, output_type};
 use std::constants::BASE_ASSET_ID;
 use utils::{
-    tx_script_bytecode_hash,
-    input_message_data_length,
-    input_message_data,
-    input_contract_contract_id,
-    input_coin_asset_id,
     input_coin_amount,
-    output_contract_input_index
+    input_coin_asset_id,
+    input_contract_contract_id,
+    input_message_data,
+    input_message_data_length,
+    output_contract_input_index,
+    tx_script_bytecode_hash,
 };
 
 ///////////////
@@ -83,7 +83,7 @@ fn input_message_contract_id(index: u64) -> ContractId {
 /// Verifies the input at the given index meets expectations (returns amount of base asset coins)
 fn verify_other_input(index: u8, num_inputs: u8) -> u64 {
     let mut num_coins: u64 = 0;
-    if(index < num_inputs) {
+    if (index < num_inputs) {
         match input_type(index) {
             Input::Coin => {
                 // Coin inputs must be of the base asset
@@ -104,7 +104,7 @@ fn verify_other_input(index: u8, num_inputs: u8) -> u64 {
 
 /// Verifies the output at the given index meets expectations
 fn verify_other_output(index: u8, num_outputs: u8) {
-    if(index < num_outputs) {
+    if (index < num_outputs) {
         match output_type(index) {
             Output::Contract => {
                 // Additional contract outputs are allowed
@@ -147,7 +147,7 @@ fn main() -> bool {
     coin_input_total += verify_other_input(7, num_inputs);
 
     // Verify the transaction outputs
-    // note: the OutputChange at index 1 is guaranteed to be for the base asset 
+    // note: the OutputChange at index 1 is guaranteed to be for the base asset
     // since no other OutputChange are allowed and tx wouldn't validate if otherwise
     let num_outputs = output_count();
     assert(num_outputs >= 2 && num_outputs <= 8);

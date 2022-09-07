@@ -6,10 +6,7 @@ use contract_message_receiver::MessageReceiver;
 use std::address::Address;
 use std::contract_id::ContractId;
 use std::constants::ZERO_B256;
-use utils::{
-    input_message_data_length,
-    input_message_data
-};
+use utils::{input_message_data, input_message_data_length};
 
 abi TestState {
     #[storage(read)]fn get_test_counter() -> u64;
@@ -34,19 +31,19 @@ impl MessageReceiver for Contract {
 
         // Parse the message data
         let data_length = input_message_data_length(msg_idx);
-        if(data_length >= 32) {
+        if (data_length >= 32) {
             let contract_id: b256 = input_message_data(msg_idx, 0);
             storage.data1 = ~ContractId::from(contract_id);
         }
-        if(data_length >= 32 + 8) {
+        if (data_length >= 32 + 8) {
             let num: u64 = input_message_data(msg_idx, 32);
             storage.data2 = num;
         }
-        if(data_length >= 32 + 8 + 32) {
+        if (data_length >= 32 + 8 + 32) {
             let big_num: b256 = input_message_data(msg_idx, 32 + 8);
             storage.data3 = big_num;
         }
-        if(data_length >= 32 + 8 + 32 + 32) {
+        if (data_length >= 32 + 8 + 32 + 32) {
             let address: b256 = input_message_data(msg_idx, 32 + 8 + 32);
             storage.data4 = ~Address::from(address);
         }
