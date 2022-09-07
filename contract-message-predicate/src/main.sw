@@ -21,7 +21,6 @@ use utils::{
 ///////////////
 // CONSTANTS //
 ///////////////
-
 // The minimum gas limit for the transaction not to revert out-of-gas
 // TODO: research what gas amount is reasonable
 const MIN_GAS = 1_200_000;
@@ -32,7 +31,6 @@ const SPENDING_SCRIPT_HASH = 0x1f820272c1191516cb7477d3cd1023e9768096f37f5faba79
 ///////////
 // UTILS //
 ///////////
-
 /// Verifies an input at the given index is a contract input
 fn verify_input_contract(index: u8) -> bool {
     if let Input::Contract = input_type(index) {
@@ -85,16 +83,15 @@ fn verify_other_input(index: u8, num_inputs: u8) -> u64 {
     let mut num_coins: u64 = 0;
     if (index < num_inputs) {
         match input_type(index) {
+            // Coin inputs must be of the base asset
             Input::Coin => {
-                // Coin inputs must be of the base asset
                 assert(input_coin_asset_id(index) == BASE_ASSET_ID);
                 num_coins = input_coin_amount(index);
             },
-            Input::Contract => {
-                // Additional contract inputs are allowed
-            },
+            // Additional contract inputs are allowed
+            Input::Contract => {},
+            // No other input types are allowed
             _ => {
-                // No other input types are allowed
                 assert(false);
             }
         }
@@ -106,17 +103,14 @@ fn verify_other_input(index: u8, num_inputs: u8) -> u64 {
 fn verify_other_output(index: u8, num_outputs: u8) {
     if (index < num_outputs) {
         match output_type(index) {
-            Output::Contract => {
-                // Additional contract outputs are allowed
-            },
-            Output::Variable => {
-                // Any variable outputs are allowed
-            },
-            Output::Message => {
-                // Any message outputs are allowed
-            },
+            // Additional contract outputs are allowed
+            Output::Contract => {},
+            // Any variable outputs are allowed
+            Output::Variable => {},
+            // Any message outputs are allowed
+            Output::Message => {},
+            // No other output types are allowed
             _ => {
-                // No other output types are allowed
                 assert(false);
             }
         }
@@ -126,7 +120,6 @@ fn verify_other_output(index: u8, num_outputs: u8) {
 ///////////////
 // PREDICATE //
 ///////////////
-
 /// Predicate verifying a message input is being spent according to the rules for a valid message data relay to contract
 fn main() -> bool {
     // Verify script bytecode hash matches

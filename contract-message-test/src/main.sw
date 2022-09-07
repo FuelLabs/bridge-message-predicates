@@ -9,11 +9,16 @@ use std::constants::ZERO_B256;
 use utils::{input_message_data, input_message_data_length};
 
 abi TestState {
-    #[storage(read)]fn get_test_counter() -> u64;
-    #[storage(read)]fn get_test_data1() -> ContractId;
-    #[storage(read)]fn get_test_data2() -> u64;
-    #[storage(read)]fn get_test_data3() -> b256;
-    #[storage(read)]fn get_test_data4() -> Address;
+    #[storage(read)]
+    fn get_test_counter() -> u64;
+    #[storage(read)]
+    fn get_test_data1() -> ContractId;
+    #[storage(read)]
+    fn get_test_data2() -> u64;
+    #[storage(read)]
+    fn get_test_data3() -> b256;
+    #[storage(read)]
+    fn get_test_data4() -> Address;
 }
 
 storage {
@@ -26,7 +31,8 @@ storage {
 
 // Implement the process_message function required to be a message receiver
 impl MessageReceiver for Contract {
-    #[storage(read, write)]fn process_message(msg_idx: u8) {
+    #[storage(read, write)]
+    fn process_message(msg_idx: u8) {
         storage.counter = storage.counter + 1;
 
         // Parse the message data
@@ -52,19 +58,24 @@ impl MessageReceiver for Contract {
 
 // Implement simple getters for testing purposes
 impl TestState for Contract {
-    #[storage(read)]fn get_test_counter() -> u64 {
+    #[storage(read)]
+    fn get_test_counter() -> u64 {
         storage.counter
     }
-    #[storage(read)]fn get_test_data1() -> ContractId {
+    #[storage(read)]
+    fn get_test_data1() -> ContractId {
         storage.data1
     }
-    #[storage(read)]fn get_test_data2() -> u64 {
+    #[storage(read)]
+    fn get_test_data2() -> u64 {
         storage.data2
     }
-    #[storage(read)]fn get_test_data3() -> b256 {
+    #[storage(read)]
+    fn get_test_data3() -> b256 {
         storage.data3
     }
-    #[storage(read)]fn get_test_data4() -> Address {
+    #[storage(read)]
+    fn get_test_data4() -> Address {
         storage.data4
     }
 }

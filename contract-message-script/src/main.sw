@@ -10,7 +10,6 @@ use utils::{input_contract_contract_id, input_message_amount};
 ///////////////
 // CONSTANTS //
 ///////////////
-
 // The input index values
 const CONTRACT_INPUT_INDEX = 0u8;
 const MESSAGE_INPUT_INDEX = 1u8;
@@ -18,7 +17,6 @@ const MESSAGE_INPUT_INDEX = 1u8;
 ////////////
 // SCRIPT //
 ////////////
-
 /// Script that relays a message and sends the message amount to a contract
 fn main() -> bool {
     // Get contract to send message to
@@ -28,8 +26,8 @@ fn main() -> bool {
 
     // Execute the message
     message_receiver.process_message {
-        asset_id: BASE_ASSET_ID.into(), coins: message_amount
-    }
-    (MESSAGE_INPUT_INDEX);
+        asset_id: BASE_ASSET_ID.into(),
+        coins: message_amount,
+    }(MESSAGE_INPUT_INDEX);
     true
 }
