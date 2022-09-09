@@ -3,7 +3,7 @@ library test_abi;
 use std::address::Address;
 use std::contract_id::ContractId;
 
-pub abi VerifyMessageData {
+abi VerifyMessageData {
     #[storage(read)]
     fn get_test_counter() -> u64;
     #[storage(read)]
