@@ -46,7 +46,6 @@ Build:
 
 ```sh
 forc build -p contract-message-predicate
-forc build -p contract-message-receiver
 forc build -p contract-message-script
 forc build -p contract-message-test
 ```

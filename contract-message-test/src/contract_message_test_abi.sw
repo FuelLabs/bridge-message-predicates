@@ -1,4 +1,4 @@
-library test_abi;
+library contract_message_test_abi;
 
 use std::address::Address;
 use std::contract_id::ContractId;

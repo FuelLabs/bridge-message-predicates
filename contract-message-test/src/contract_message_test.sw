@@ -1,10 +1,10 @@
 contract;
 
-dep test_abi;
+dep contract_message_test_abi;
 dep utils;
 
 use contract_message_receiver::MessageReceiver;
-use test_abi::VerifyMessageData;
+use contract_message_test_abi::VerifyMessageData;
 use utils::{input_message_data, input_message_data_length};
 use std::address::Address;
 use std::contract_id::ContractId;
