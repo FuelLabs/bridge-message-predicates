@@ -1,6 +1,9 @@
 /**
  * TODO: This module contains functions that should eventually
  * be made part of the fuel-core repo in test-helpers lib.rs
+ * 
+ * These functions will eventually be replaced with code found here:
+ * https://github.com/FuelLabs/fuels-rs/pull/555
  */
 use std::net::SocketAddr;
 

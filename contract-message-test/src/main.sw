@@ -1,25 +1,14 @@
 contract;
 
+dep test_abi;
 dep utils;
 
 use contract_message_receiver::MessageReceiver;
+use test_abi::VerifyMessageData;
+use utils::{input_message_data, input_message_data_length};
 use std::address::Address;
 use std::contract_id::ContractId;
 use std::constants::ZERO_B256;
-use utils::{input_message_data, input_message_data_length};
-
-abi TestState {
-    #[storage(read)]
-    fn get_test_counter() -> u64;
-    #[storage(read)]
-    fn get_test_data1() -> ContractId;
-    #[storage(read)]
-    fn get_test_data2() -> u64;
-    #[storage(read)]
-    fn get_test_data3() -> b256;
-    #[storage(read)]
-    fn get_test_data4() -> Address;
-}
 
 storage {
     counter: u64 = 0,
@@ -57,7 +46,7 @@ impl MessageReceiver for Contract {
 }
 
 // Implement simple getters for testing purposes
-impl TestState for Contract {
+impl VerifyMessageData for Contract {
     #[storage(read)]
     fn get_test_counter() -> u64 {
         storage.counter
