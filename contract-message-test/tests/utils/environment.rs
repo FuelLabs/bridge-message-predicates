@@ -1,5 +1,5 @@
+use crate::builder;
 use crate::ext_fuel_core;
-use crate::ext_sdk_provider;
 
 use std::mem::size_of;
 use std::num::ParseIntError;
@@ -56,8 +56,7 @@ pub async fn setup_environment(
     // Generate messages
     let message_nonce: Word = Word::default();
     let message_sender = Address::from_str(MESSAGE_SENDER_ADDRESS).unwrap();
-    let (predicate_bytecode, predicate_root) =
-        ext_sdk_provider::get_contract_message_predicate().await;
+    let (predicate_bytecode, predicate_root) = builder::get_contract_message_predicate().await;
     let all_messages = messages
         .iter()
         .map(|message| {
@@ -156,7 +155,7 @@ pub async fn relay_message_to_contract(
     optional_outputs: &[Output],
 ) -> Vec<Receipt> {
     // Build transaction
-    let mut tx = ext_sdk_provider::build_contract_message_tx(
+    let mut tx = builder::build_contract_message_tx(
         message,
         contract,
         gas_coins,

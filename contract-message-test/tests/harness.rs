@@ -1,10 +1,10 @@
 mod utils {
+    pub mod builder;
     pub mod environment;
     pub mod ext_fuel_core;
-    pub mod ext_sdk_provider;
 }
+use utils::builder;
 use utils::ext_fuel_core;
-use utils::ext_sdk_provider;
 
 pub const RANDOM_SALT: &str = "0x1a896ebd5f55c10bc830755278e6d2b9278b4177b8bca400d3e7710eee293786";
 pub const RANDOM_SALT2: &str = "0xd5f55c10bc830755278e6d2b9278b4177b8bca401a896eb0d3e7710eee293786";
@@ -210,8 +210,8 @@ mod success {
 mod panic {
     use std::str::FromStr;
 
+    use crate::utils::builder;
     use crate::utils::environment as env;
-    use crate::utils::ext_sdk_provider;
     use fuels::prelude::Salt;
     use fuels::prelude::TxParameters;
     use fuels::test_helpers::DEFAULT_COIN_AMOUNT;
@@ -241,7 +241,7 @@ mod panic {
         .await;
 
         // Build the message relaying transaction
-        let mut tx = ext_sdk_provider::build_contract_message_tx(
+        let mut tx = builder::build_contract_message_tx(
             message_inputs[0].clone(),
             contract_input,
             &coin_inputs[..],
@@ -269,7 +269,7 @@ mod panic {
             env::setup_environment(vec![coin1, coin2], vec![message]).await;
 
         // Build the message relaying transaction
-        let mut tx = ext_sdk_provider::build_contract_message_tx(
+        let mut tx = builder::build_contract_message_tx(
             message_inputs[0].clone(),
             contract_input,
             &coin_inputs[..],
@@ -316,8 +316,7 @@ mod panic {
             env::setup_environment(vec![coin], vec![]).await;
 
         // Transfer coins to a coin with the predicate as an owner
-        let (predicate_bytecode, predicate_root) =
-            ext_sdk_provider::get_contract_message_predicate().await;
+        let (predicate_bytecode, predicate_root) = builder::get_contract_message_predicate().await;
         let _receipt = wallet
             .transfer(
                 &predicate_root.into(),
@@ -345,7 +344,7 @@ mod panic {
         };
 
         // Build the message relaying transaction
-        let mut tx = ext_sdk_provider::build_contract_message_tx(
+        let mut tx = builder::build_contract_message_tx(
             coin_as_message,
             contract_input,
             &coin_inputs,
@@ -372,7 +371,7 @@ mod panic {
             env::setup_environment(vec![coin], vec![message]).await;
 
         // Build the message relaying transaction
-        let mut tx = ext_sdk_provider::build_contract_message_tx(
+        let mut tx = builder::build_contract_message_tx(
             message_inputs[0].clone(),
             contract_input,
             &coin_inputs[..],
@@ -401,7 +400,7 @@ mod panic {
             env::setup_environment(vec![coin], vec![message1, message2]).await;
 
         // Build the message relaying transaction
-        let mut tx = ext_sdk_provider::build_contract_message_tx(
+        let mut tx = builder::build_contract_message_tx(
             message_inputs[0].clone(),
             contract_input,
             &coin_inputs[..],
@@ -436,7 +435,7 @@ mod panic {
         };
 
         // Build the message relaying transaction
-        let mut tx = ext_sdk_provider::build_contract_message_tx(
+        let mut tx = builder::build_contract_message_tx(
             message_inputs[0].clone(),
             contract_input,
             &coin_inputs[..],
@@ -471,7 +470,7 @@ mod panic {
         };
 
         // Build the message relaying transaction
-        let mut tx = ext_sdk_provider::build_contract_message_tx(
+        let mut tx = builder::build_contract_message_tx(
             message_inputs[0].clone(),
             contract_input,
             &coin_inputs[..],
@@ -505,7 +504,7 @@ mod panic {
         };
 
         // Build the message relaying transaction
-        let mut tx = ext_sdk_provider::build_contract_message_tx(
+        let mut tx = builder::build_contract_message_tx(
             message_inputs[0].clone(),
             contract_input,
             &coin_inputs[..],
@@ -549,7 +548,7 @@ mod panic {
         };
 
         // Build the message relaying transaction
-        let mut tx = ext_sdk_provider::build_contract_message_tx(
+        let mut tx = builder::build_contract_message_tx(
             message_inputs[0].clone(),
             contract_input,
             &coin_inputs[..],
@@ -594,7 +593,7 @@ mod panic {
             .collect();
 
         // Build the message relaying transaction
-        let mut tx = ext_sdk_provider::build_contract_message_tx(
+        let mut tx = builder::build_contract_message_tx(
             message_inputs[0].clone(),
             contract_input,
             &coin_inputs[..],
@@ -621,7 +620,7 @@ mod panic {
             env::setup_environment(vec![coin], vec![message]).await;
 
         // Build the message relaying transaction
-        let mut tx = ext_sdk_provider::build_contract_message_tx(
+        let mut tx = builder::build_contract_message_tx(
             message_inputs[0].clone(),
             contract_input,
             &coin_inputs[..],
@@ -648,7 +647,7 @@ mod panic {
             env::setup_environment(vec![coin], vec![message]).await;
 
         // Build the message relaying transaction
-        let mut tx = ext_sdk_provider::build_contract_message_tx(
+        let mut tx = builder::build_contract_message_tx(
             message_inputs[0].clone(),
             contract_input,
             &coin_inputs[..],
