@@ -18,7 +18,7 @@ const GTF_OUTPUT_CONTRACT_INPUT_INDEX = 0x205;
 // TODO: [std-lib] replace with 'tx_script_bytecode_hash'
 pub fn tx_script_bytecode_hash() -> b256 {
     // Get the script memory details
-    let mut result_buffer: b256 = ZERO_B256;
+    let mut result_buffer = ZERO_B256;
     let script_length = __gtf::<u64>(0, GTF_SCRIPT_SCRIPT_LENGTH);
     let script_ptr = __gtf::<u64>(0, GTF_SCRIPT_SCRIPT);
 

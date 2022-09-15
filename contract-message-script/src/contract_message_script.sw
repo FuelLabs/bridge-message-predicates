@@ -3,8 +3,7 @@ script;
 dep utils;
 
 use contract_message_receiver::MessageReceiver;
-use std::contract_id::ContractId;
-use std::constants::BASE_ASSET_ID;
+use std::{constants::BASE_ASSET_ID, contract_id::ContractId};
 use utils::{input_contract_contract_id, input_message_amount};
 
 ///////////////
