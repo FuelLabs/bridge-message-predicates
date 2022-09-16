@@ -6,9 +6,6 @@ mod utils {
 use utils::builder;
 use utils::ext_fuel_core;
 
-pub const RANDOM_SALT: &str = "0x1a896ebd5f55c10bc830755278e6d2b9278b4177b8bca400d3e7710eee293786";
-pub const RANDOM_SALT2: &str = "0xd5f55c10bc830755278e6d2b9278b4177b8bca401a896eb0d3e7710eee293786";
-
 // Test that input messages can be relayed to a contract
 // and that the contract can successfully parse the message data
 mod success {
@@ -40,12 +37,9 @@ mod success {
         let message_data = env::prefix_contract_id(message_data).await;
         let message = (100, message_data);
         let coin = (DEFAULT_COIN_AMOUNT, AssetId::default());
-
-        // Set up the environment
         let (wallet, test_contract, contract_input, coin_inputs, message_inputs) =
             env::setup_environment(vec![coin], vec![message]).await;
 
-        // Relay the test message to the test contract
         let _receipts = env::relay_message_to_contract(
             &wallet,
             message_inputs[0].clone(),
@@ -56,19 +50,17 @@ mod success {
         )
         .await;
 
-        // Verify test contract received the message
-        let test_contract_counter = test_contract.get_test_counter().call().await.unwrap().value;
-        assert_eq!(test_contract_counter, 1);
-
-        // Verify test contract received the correct data
+        // Verify test contract received the message with the correct data
         let test_contract_id: ContractId = test_contract._get_contract_id().into();
+        let test_contract_counter = test_contract.get_test_counter().call().await.unwrap().value;
         let test_contract_data1 = test_contract.get_test_data1().call().await.unwrap().value;
-        assert_eq!(test_contract_data1, test_contract_id);
         let test_contract_data2 = test_contract.get_test_data2().call().await.unwrap().value;
-        assert_eq!(test_contract_data2, data_word);
         let test_contract_data3 = test_contract.get_test_data3().call().await.unwrap().value;
-        assert_eq!(test_contract_data3, data_bytes.to_vec()[..]);
         let test_contract_data4 = test_contract.get_test_data4().call().await.unwrap().value;
+        assert_eq!(test_contract_counter, 1);
+        assert_eq!(test_contract_data1, test_contract_id);
+        assert_eq!(test_contract_data2, data_word);
+        assert_eq!(test_contract_data3, data_bytes.to_vec()[..]);
         assert_eq!(test_contract_data4, data_address);
 
         // Verify the message value was received by the test contract
@@ -87,12 +79,9 @@ mod success {
         let coin1 = (1_000_000, AssetId::default());
         let coin2 = (1_000_000, AssetId::default());
         let coin3 = (1_000_000, AssetId::default());
-
-        // Set up the environment
         let (wallet, test_contract, contract_input, coin_inputs, message_inputs) =
             env::setup_environment(vec![coin1, coin2, coin3], vec![message]).await;
 
-        // Relay the test message to the test contract
         let _receipts = env::relay_message_to_contract(
             &wallet,
             message_inputs[0].clone(),
@@ -103,13 +92,11 @@ mod success {
         )
         .await;
 
-        // Verify test contract received the message
-        let test_contract_counter = test_contract.get_test_counter().call().await.unwrap().value;
-        assert_eq!(test_contract_counter, 1);
-
         // Verify test contract received the correct data
         let test_contract_id: ContractId = test_contract._get_contract_id().into();
+        let test_contract_counter = test_contract.get_test_counter().call().await.unwrap().value;
         let test_contract_data1 = test_contract.get_test_data1().call().await.unwrap().value;
+        assert_eq!(test_contract_counter, 1);
         assert_eq!(test_contract_data1, test_contract_id);
 
         // Verify the message value was received by the test contract
@@ -126,8 +113,6 @@ mod success {
         let message_data = env::prefix_contract_id(vec![]).await;
         let message = (420, message_data);
         let coin = (DEFAULT_COIN_AMOUNT, AssetId::default());
-
-        // Set up the environment
         let (wallet, test_contract, contract_input, coin_inputs, message_inputs) =
             env::setup_environment(vec![coin], vec![message]).await;
 
@@ -142,7 +127,7 @@ mod success {
         .await
         .unwrap();
 
-        // Create optional inputs/outputs
+        // Create optional inputs/outputs and relay message
         let input_contract = Input::Contract {
             utxo_id: UtxoId::new(Bytes32::zeroed(), 0u8),
             balance_root: Bytes32::zeroed(),
@@ -169,8 +154,6 @@ mod success {
             recipient: Address::default(),
             amount: Word::default(),
         };
-
-        // Relay the test message to the test contract
         let _receipts = env::relay_message_to_contract(
             &wallet,
             message_inputs[0].clone(),
@@ -186,13 +169,11 @@ mod success {
         )
         .await;
 
-        // Verify test contract received the message
-        let test_contract_counter = test_contract.get_test_counter().call().await.unwrap().value;
-        assert_eq!(test_contract_counter, 1);
-
         // Verify test contract received the correct data
         let test_contract_id: ContractId = test_contract._get_contract_id().into();
+        let test_contract_counter = test_contract.get_test_counter().call().await.unwrap().value;
         let test_contract_data1 = test_contract.get_test_data1().call().await.unwrap().value;
+        assert_eq!(test_contract_counter, 1);
         assert_eq!(test_contract_data1, test_contract_id);
 
         // Verify the message value was received by the test contract
@@ -207,7 +188,7 @@ mod success {
 
 // Test the cases where the transaction should panic due to the
 // predicate script failing to validate the transaction requirements
-mod panic {
+mod fail {
     use std::str::FromStr;
 
     use crate::utils::builder;
@@ -232,15 +213,12 @@ mod panic {
         let coin5 = (1_000_000, AssetId::default());
         let coin6 = (1_000_000, AssetId::default());
         let coin7 = (1_000_000, AssetId::default());
-
-        // Set up the environment
         let (wallet, _, contract_input, coin_inputs, message_inputs) = env::setup_environment(
             vec![coin1, coin2, coin3, coin4, coin5, coin6, coin7],
             vec![message],
         )
         .await;
 
-        // Build the message relaying transaction
         let mut tx = builder::build_contract_message_tx(
             message_inputs[0].clone(),
             contract_input,
@@ -251,7 +229,6 @@ mod panic {
         )
         .await;
 
-        // Sign transaction and call
         // Note: tx inputs[contract, message, coin1, coin2, coin3, coin4, coin5, coin6, coin7], tx outputs[contract, change]
         let _receipts = env::sign_and_call_tx(&wallet, &mut tx).await;
     }
@@ -263,12 +240,9 @@ mod panic {
         let message = (100, message_data);
         let coin1 = (DEFAULT_COIN_AMOUNT, AssetId::default());
         let coin2 = (DEFAULT_COIN_AMOUNT, AssetId::default());
-
-        // Set up the environment
         let (wallet, _, contract_input, coin_inputs, message_inputs) =
             env::setup_environment(vec![coin1, coin2], vec![message]).await;
 
-        // Build the message relaying transaction
         let mut tx = builder::build_contract_message_tx(
             message_inputs[0].clone(),
             contract_input,
@@ -280,38 +254,28 @@ mod panic {
         .await;
 
         // Modify the transaction
-        // Note: tx inputs[contract, message, coin1, coin2], tx outputs[contract, change]
         let inputs_length = tx.inputs().len();
-        match &mut tx {
-            Transaction::Script {
-                inputs, outputs, ..
-            } => {
-                // Swap the input contract with 'coin2' at the end
-                inputs.swap(0, inputs_length - 1);
+        if let Transaction::Script {
+            inputs, outputs, ..
+        } = &mut tx
+        {
+            // Swap the input contract with 'coin2' at the end
+            inputs.swap(0, inputs_length - 1);
 
-                // Correct the input index for the contract output
-                match &mut outputs[0] {
-                    Output::Contract { input_index, .. } => {
-                        *input_index = (inputs_length - 1) as u8;
-                    }
-                    _ => {}
-                };
+            // Correct the input index for the contract output
+            if let Output::Contract { input_index, .. } = &mut outputs[0] {
+                *input_index = (inputs_length - 1) as u8;
             }
-            _ => {}
-        };
+        }
 
-        // Sign transaction and call
         // Note: tx inputs[coin2, message, coin1, contract], tx outputs[contract, change]
         let _receipts = env::sign_and_call_tx(&wallet, &mut tx).await;
     }
 
     #[tokio::test]
-    //#[should_panic]
     #[should_panic(expected = "The transaction contains a predicate which failed to validate")]
     async fn relay_message_with_missing_input_message() {
         let coin = (DEFAULT_COIN_AMOUNT, AssetId::default());
-
-        // Set up the environment
         let (wallet, _, contract_input, coin_inputs, _) =
             env::setup_environment(vec![coin], vec![]).await;
 
@@ -342,8 +306,6 @@ mod panic {
             predicate: predicate_bytecode,
             predicate_data: vec![],
         };
-
-        // Build the message relaying transaction
         let mut tx = builder::build_contract_message_tx(
             coin_as_message,
             contract_input,
@@ -354,7 +316,6 @@ mod panic {
         )
         .await;
 
-        // Sign transaction and call
         // Note: tx inputs[contract, coin_message, coin], tx outputs[contract, change]
         let _receipts = env::sign_and_call_tx(&wallet, &mut tx).await;
     }
@@ -365,12 +326,9 @@ mod panic {
         let message_data_bad = Salt::from_str(RANDOM_SALT).unwrap().to_vec();
         let message = (100, message_data_bad);
         let coin = (1_000_000, AssetId::default());
-
-        // Set up the environment
         let (wallet, _, contract_input, coin_inputs, message_inputs) =
             env::setup_environment(vec![coin], vec![message]).await;
 
-        // Build the message relaying transaction
         let mut tx = builder::build_contract_message_tx(
             message_inputs[0].clone(),
             contract_input,
@@ -381,7 +339,6 @@ mod panic {
         )
         .await;
 
-        // Sign transaction and call
         // Note: tx inputs[contract, message, coin], tx outputs[contract, change]
         let _receipts = env::sign_and_call_tx(&wallet, &mut tx).await;
     }
@@ -394,12 +351,9 @@ mod panic {
         let message1 = (100, message_data1);
         let message2 = (100, message_data2);
         let coin = (1_000_000, AssetId::default());
-
-        // Set up the environment
         let (wallet, _, contract_input, coin_inputs, message_inputs) =
             env::setup_environment(vec![coin], vec![message1, message2]).await;
 
-        // Build the message relaying transaction
         let mut tx = builder::build_contract_message_tx(
             message_inputs[0].clone(),
             contract_input,
@@ -410,7 +364,6 @@ mod panic {
         )
         .await;
 
-        // Sign transaction and call
         // Note: tx inputs[contract, message1, coin, message2], tx outputs[contract, change]
         let _receipts = env::sign_and_call_tx(&wallet, &mut tx).await;
     }
@@ -422,8 +375,6 @@ mod panic {
         let message = (100, message_data);
         let coin1 = (1_000_000, AssetId::default());
         let coin2 = (1_000_000, AssetId::from_str(RANDOM_SALT).unwrap());
-
-        // Set up the environment
         let (wallet, _, contract_input, coin_inputs, message_inputs) =
             env::setup_environment(vec![coin1, coin2], vec![message]).await;
 
@@ -433,8 +384,6 @@ mod panic {
             amount: Word::from(coin2.0),
             asset_id: coin2.1,
         };
-
-        // Build the message relaying transaction
         let mut tx = builder::build_contract_message_tx(
             message_inputs[0].clone(),
             contract_input,
@@ -445,7 +394,6 @@ mod panic {
         )
         .await;
 
-        // Sign transaction and call
         // Note: tx inputs[contract, message, coin1, coin2], tx outputs[contract, change, coin2]
         let _receipts = env::sign_and_call_tx(&wallet, &mut tx).await;
     }
@@ -457,8 +405,6 @@ mod panic {
         let message = (100, message_data);
         let coin1 = (1_000_000, AssetId::default());
         let coin2 = (1_000_000, AssetId::from_str(RANDOM_SALT).unwrap());
-
-        // Set up the environment
         let (wallet, _, contract_input, coin_inputs, message_inputs) =
             env::setup_environment(vec![coin1, coin2], vec![message]).await;
 
@@ -468,8 +414,6 @@ mod panic {
             amount: Word::default(),
             asset_id: coin2.1,
         };
-
-        // Build the message relaying transaction
         let mut tx = builder::build_contract_message_tx(
             message_inputs[0].clone(),
             contract_input,
@@ -480,7 +424,6 @@ mod panic {
         )
         .await;
 
-        // Sign transaction and call
         // Note: tx inputs[contract, message, coin1, coin2], tx outputs[contract, change, change2]
         let _receipts = env::sign_and_call_tx(&wallet, &mut tx).await;
     }
@@ -491,8 +434,6 @@ mod panic {
         let message_data = env::prefix_contract_id(vec![]).await;
         let message = (100, message_data);
         let coin = (DEFAULT_COIN_AMOUNT, AssetId::default());
-
-        // Set up the environment
         let (wallet, _, contract_input, coin_inputs, message_inputs) =
             env::setup_environment(vec![coin], vec![message]).await;
 
@@ -502,8 +443,6 @@ mod panic {
             amount: Word::default(),
             asset_id: AssetId::default(),
         };
-
-        // Build the message relaying transaction
         let mut tx = builder::build_contract_message_tx(
             message_inputs[0].clone(),
             contract_input,
@@ -516,15 +455,11 @@ mod panic {
 
         // Modify the transaction
         let inputs_length = tx.inputs().len();
-        match &mut tx {
-            Transaction::Script { outputs, .. } => {
-                // Swap the output contract at the start with the coutput variable at the end
-                outputs.swap(0, inputs_length - 1);
-            }
-            _ => {}
-        };
+        if let Transaction::Script { outputs, .. } = &mut tx {
+            // Swap the output contract at the start with the coutput variable at the end
+            outputs.swap(0, inputs_length - 1);
+        }
 
-        // Sign transaction and call
         // Note: tx inputs[contract, message, coin], tx outputs[variable, change, contract]
         let _receipts = env::sign_and_call_tx(&wallet, &mut tx).await;
     }
@@ -535,8 +470,6 @@ mod panic {
         let message_data = env::prefix_contract_id(vec![]).await;
         let message = (100, message_data);
         let coin = (DEFAULT_COIN_AMOUNT, AssetId::default());
-
-        // Set up the environment
         let (wallet, _, contract_input, coin_inputs, message_inputs) =
             env::setup_environment(vec![coin], vec![message]).await;
 
@@ -546,8 +479,6 @@ mod panic {
             amount: Word::default(),
             asset_id: AssetId::default(),
         };
-
-        // Build the message relaying transaction
         let mut tx = builder::build_contract_message_tx(
             message_inputs[0].clone(),
             contract_input,
@@ -560,15 +491,11 @@ mod panic {
 
         // Modify the transaction
         let inputs_length = tx.inputs().len();
-        match &mut tx {
-            Transaction::Script { outputs, .. } => {
-                // Swap the output change with the output variable at the end
-                outputs.swap(1, inputs_length - 1);
-            }
-            _ => {}
-        };
+        if let Transaction::Script { outputs, .. } = &mut tx {
+            // Swap the output change with the output variable at the end
+            outputs.swap(1, inputs_length - 1);
+        }
 
-        // Sign transaction and call
         // Note: tx inputs[contract, message, coin], tx outputs[contract, variable, change]
         let _receipts = env::sign_and_call_tx(&wallet, &mut tx).await;
     }
@@ -579,8 +506,6 @@ mod panic {
         let message_data = env::prefix_contract_id(vec![]).await;
         let message = (100, message_data);
         let coin = (DEFAULT_COIN_AMOUNT, AssetId::default());
-
-        // Set up the environment
         let (wallet, _, contract_input, coin_inputs, message_inputs) =
             env::setup_environment(vec![coin], vec![message]).await;
 
@@ -591,8 +516,6 @@ mod panic {
                 amount: Word::default(),
             })
             .collect();
-
-        // Build the message relaying transaction
         let mut tx = builder::build_contract_message_tx(
             message_inputs[0].clone(),
             contract_input,
@@ -603,7 +526,6 @@ mod panic {
         )
         .await;
 
-        // Sign transaction and call
         // Note: tx inputs[contract, message, coin], tx outputs[contract, change, message1, message2, message3, message4, message5, message6, message7]
         let _receipts = env::sign_and_call_tx(&wallet, &mut tx).await;
     }
@@ -614,12 +536,9 @@ mod panic {
         let message_data = env::prefix_contract_id(vec![]).await;
         let message = (100, message_data);
         let coin = (1_000_000, AssetId::default());
-
-        // Set up the environment
         let (wallet, _, contract_input, coin_inputs, message_inputs) =
             env::setup_environment(vec![coin], vec![message]).await;
 
-        // Build the message relaying transaction
         let mut tx = builder::build_contract_message_tx(
             message_inputs[0].clone(),
             contract_input,
@@ -630,7 +549,6 @@ mod panic {
         )
         .await;
 
-        // Sign transaction and call
         // Note: tx inputs[contract, message, coin], tx outputs[contract, change]
         let _receipts = env::sign_and_call_tx(&wallet, &mut tx).await;
     }
@@ -641,12 +559,9 @@ mod panic {
         let message_data = env::prefix_contract_id(vec![]).await;
         let message = (100, message_data);
         let coin = (DEFAULT_COIN_AMOUNT, AssetId::default());
-
-        // Set up the environment
         let (wallet, _, contract_input, coin_inputs, message_inputs) =
             env::setup_environment(vec![coin], vec![message]).await;
 
-        // Build the message relaying transaction
         let mut tx = builder::build_contract_message_tx(
             message_inputs[0].clone(),
             contract_input,
@@ -658,14 +573,10 @@ mod panic {
         .await;
 
         // Modify the script bytecode
-        match &mut tx {
-            Transaction::Script { script, .. } => {
-                *script = vec![0u8, 1u8, 2u8, 3u8];
-            }
-            _ => {}
+        if let Transaction::Script { script, .. } = &mut tx {
+            *script = vec![0u8, 1u8, 2u8, 3u8];
         }
 
-        // Sign transaction and call
         // Note: tx inputs[contract, message, coin], tx outputs[contract, change]
         let _receipts = env::sign_and_call_tx(&wallet, &mut tx).await;
     }
