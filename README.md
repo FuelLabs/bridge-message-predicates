@@ -6,23 +6,17 @@ Most messages sent from the base chain to Fuel will use a predicate as the messa
 
 The Message to Contract Predicate is for messages that are trying to send a data payload to a designated Fuel contract. This predicate runs through the following checks:
 - Verify Inputs
-  - There are no more than 8 total inputs
+  - There are only 3 total inputs
   - The first input is an `InputContract` with `contractID` that matches the first 32 bytes in the message data field
   - The second input is an `InputMessage` and is the only `InputMessage` (the message with a data payload to send to a contract)
-  - There are no other `InputMessage` inputs
-  - Only `InputCoin` inputs with `asset_id` set as the base asset are allowed (to cover gas costs)
-  - Other `InputContract` inputs are allowed but are not required
+  - The third input is an `InputCoin` with `asset_id` set as the base asset (to cover gas costs)
 - Verify Outputs
-  - There are no more than 8 total outputs
+  - There are only 3 total outputs
   - The first output is an `OutputContract` with `inputIndex` set as `0`
   - The second output is an `OutputChange` with `asset_id` set as the base asset to collect unused gas fees
-  - There are no other `OutputChange` inputs
-  - Other `OutputContract` outputs are allowed but are not required
-  - Any `OutputVariable` outputs are allowed but are not required
-  - Any `OutputMessage` outputs are allowed but are not required
-  - There are no `OutputCoin` outputs allowed on the transaction
+  - The third is an `OutputVariable` which may or may not be used by the receiving contract
 - Verify script bytecode hash for the transaction matches for the designated [Message to Contract Script](#message-to-contract-script)
-- Verify that the sum of all `InputCoin` inputs is greater than the gas minimum
+- Verify that the amount in the `InputCoin` input is greater than the gas minimum
 
 If all of these conditions are met, then the predicate evaluates as true.
 

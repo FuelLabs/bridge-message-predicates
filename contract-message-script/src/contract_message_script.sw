@@ -1,17 +1,17 @@
 script;
 
-dep utils;
+dep transaction_utils;
 
 use contract_message_receiver::MessageReceiver;
-use std::{constants::BASE_ASSET_ID, contract_id::ContractId};
-use utils::{input_contract_contract_id, input_message_amount};
+use std::constants::ZERO_B256;
+use transaction_utils::{input_contract_contract_id, input_message_amount};
 
 ///////////////
 // CONSTANTS //
 ///////////////
 // The input index values
-const CONTRACT_INPUT_INDEX = 0u8;
-const MESSAGE_INPUT_INDEX = 1u8;
+const INPUT_CONTRACT_INDEX = 0u8;
+const INPUT_MESSAGE_INDEX = 1u8;
 
 ////////////
 // SCRIPT //
@@ -19,14 +19,12 @@ const MESSAGE_INPUT_INDEX = 1u8;
 /// Script that relays a message and sends the message amount to a contract
 fn main() -> bool {
     // Get contract to send message to
-    let contract_id = input_contract_contract_id(CONTRACT_INPUT_INDEX);
-    let message_receiver = abi(MessageReceiver, contract_id.into());
-    let message_amount = input_message_amount(MESSAGE_INPUT_INDEX);
+    let message_receiver = abi(MessageReceiver, input_contract_contract_id(INPUT_CONTRACT_INDEX));
 
     // Execute the message
     message_receiver.process_message {
-        asset_id: BASE_ASSET_ID.into(),
-        coins: message_amount,
-    }(MESSAGE_INPUT_INDEX);
+        asset_id: ZERO_B256,
+        coins: input_message_amount(INPUT_MESSAGE_INDEX),
+    }(INPUT_MESSAGE_INDEX);
     true
 }

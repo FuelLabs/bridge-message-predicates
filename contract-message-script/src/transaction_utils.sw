@@ -1,0 +1,14 @@
+library transaction_utils;
+
+const GTF_INPUT_CONTRACT_CONTRACT_ID = 0x113;
+const GTF_INPUT_MESSAGE_AMOUNT = 0x117;
+
+/// Get the ID of a contract input
+pub fn input_contract_contract_id(index: u64) -> b256 {
+    __gtf::<b256>(index, GTF_INPUT_CONTRACT_CONTRACT_ID)
+}
+
+/// Get the amount of a message input
+pub fn input_message_amount(index: u64) -> u64 {
+    __gtf::<u64>(index, GTF_INPUT_MESSAGE_AMOUNT)
+}

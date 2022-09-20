@@ -75,7 +75,7 @@ pub async fn build_contract_message_tx(
     // Create the trnsaction
     Transaction::Script {
         gas_price: params.gas_price,
-        gas_limit: CONTRACT_MESSAGE_MIN_GAS * 10,
+        gas_limit: CONTRACT_MESSAGE_MIN_GAS,
         maturity: params.maturity,
         receipts_root: Default::default(),
         script: script_bytecode,
