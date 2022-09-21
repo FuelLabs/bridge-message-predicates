@@ -28,7 +28,6 @@ const INPUT_TYPE_COIN = 0u8;
 const INPUT_TYPE_CONTRACT = 1u8;
 const INPUT_TYPE_MESSAGE = 2u8;
 
-
 /// Get the transaction gas price
 pub fn tx_gas_price() -> u64 {
     __gtf::<u64>(0, GTF_SCRIPT_GAS_PRICE)
@@ -47,7 +46,6 @@ pub fn tx_script_bytecode_hash() -> b256 {
         hash: b256
     }
 }
-
 
 /// Get the transaction inputs count
 pub fn input_count() -> u64 {
@@ -92,7 +90,6 @@ pub fn input_coin_asset_id(index: u64) -> b256 {
 pub fn input_coin_amount(index: u64) -> u64 {
     __gtf::<u64>(index, GTF_INPUT_COIN_AMOUNT)
 }
-
 
 /// Get the transaction outputs count
 pub fn output_count() -> u64 {

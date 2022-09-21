@@ -1,18 +1,17 @@
 use crate::builder;
-use crate::ext_fuel_core;
 
 use std::mem::size_of;
 use std::num::ParseIntError;
 use std::str::FromStr;
 
+use fuel_core_interfaces::model::{Coin, Message};
 use fuels::contract::script::Script;
 use fuels::prelude::*;
 use fuels::signers::fuel_crypto::SecretKey;
-use fuels::test_helpers::Config;
-use fuels::tx::Output;
-use fuels::tx::Receipt;
-use fuels::tx::Transaction;
-use fuels::tx::{Address, AssetId, Bytes32, Input, TxPointer, UtxoId, Word};
+use fuels::test_helpers::{setup_single_message, setup_test_client, Config};
+use fuels::tx::{
+    Address, AssetId, Bytes32, Input, Output, Receipt, Transaction, TxPointer, UtxoId, Word,
+};
 
 abigen!(
     TestContract,
@@ -51,18 +50,19 @@ pub async fn setup_environment(
             coin_amount: coin.0,
         })
         .collect();
-    let all_coins = setup_custom_assets_coins(wallet.address(), &asset_configs[..]);
+    let all_coins: Vec<(UtxoId, Coin)> =
+        setup_custom_assets_coins(wallet.address(), &asset_configs[..]);
 
     // Generate messages
     let message_nonce: Word = Word::default();
     let message_sender = Address::from_str(MESSAGE_SENDER_ADDRESS).unwrap();
     let (predicate_bytecode, predicate_root) = builder::get_contract_message_predicate().await;
-    let all_messages = messages
+    let all_messages: Vec<Message> = messages
         .iter()
-        .map(|message| {
-            ext_fuel_core::setup_single_message(
-                message_sender,
-                predicate_root,
+        .flat_map(|message| {
+            setup_single_message(
+                &message_sender.into(),
+                &predicate_root.into(),
                 message.0,
                 message_nonce,
                 message.1.clone(),
@@ -73,9 +73,9 @@ pub async fn setup_environment(
     // Create the client and provider
     let mut provider_config = Config::local_node();
     provider_config.predicates = true;
-    let (client, _) = ext_fuel_core::setup_test_client_with_messages(
-        &all_coins,
-        &all_messages,
+    let (client, _) = setup_test_client(
+        all_coins.clone(),
+        all_messages.clone(),
         Some(provider_config),
         None,
     )
@@ -150,7 +150,7 @@ pub async fn relay_message_to_contract(
     wallet: &WalletUnlocked,
     message: Input,
     contract: Input,
-    gas_coins: &[Input],
+    gas_coin: Input,
     optional_inputs: &[Input],
     optional_outputs: &[Output],
 ) -> Vec<Receipt> {
@@ -158,7 +158,7 @@ pub async fn relay_message_to_contract(
     let mut tx = builder::build_contract_message_tx(
         message,
         contract,
-        gas_coins,
+        gas_coin,
         optional_inputs,
         optional_outputs,
         TxParameters::default(),

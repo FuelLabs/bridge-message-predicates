@@ -2,10 +2,7 @@ predicate;
 
 dep transaction_utils;
 
-use std::{
-    assert::assert,
-    constants::ZERO_B256,
-};
+use std::{assert::assert, constants::ZERO_B256};
 use transaction_utils::{
     input_coin_amount,
     input_coin_asset_id,
