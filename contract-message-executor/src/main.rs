@@ -1,9 +1,22 @@
 mod utils;
 
 use fuels::prelude::*;
+use std::{thread, time};
+
+// TO DO:
+// Make this whole thing more professional and robust
 
 #[tokio::main]
 async fn main() {
+    // This will check for new messages to relay every 10 seconds
+    let period = time::Duration::new(10, 0);
+    loop {
+        relay_messages().await;
+        thread::sleep(period);
+    }
+}
+
+async fn relay_messages() {
     // Connect to provider
     let provider = Provider::connect("node-beta-1.fuel.network").await.unwrap();
 
