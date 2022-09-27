@@ -108,9 +108,12 @@ pub async fn sign_and_call_tx(wallet: &WalletUnlocked, tx: &mut Transaction) -> 
 }
 
 /// Builds and broadcasts as transaction relaying a message
-pub async fn relay_message_to_contract(wallet: &WalletUnlocked, message: Input) -> Vec<Receipt> {
-    // TO DO: Extract contract ID from message data (first 32 bytes)
-    let contract_id = ContractId::from([0u8; 32]);
+pub async fn relay_message_to_contract(wallet: &WalletUnlocked, message: Input, data: Vec<u8>) -> Vec<Receipt> {
+    
+    // Extract contract ID from message data (first 32 bytes)
+    let contract_id_slice = &data[..32];
+    let contract_id_array: [u8; 32] = contract_id_slice.try_into().unwrap(); 
+    let contract_id = ContractId::from(contract_id_array);
 
     // TO DO: Get a coin from the wallet to pay for gas
     // Note : Need to make sure coin is big enough to cover gas
