@@ -1,7 +1,8 @@
-use fuels::prelude::*;
 use fuels::contract::script::Script;
+use fuels::prelude::*;
 use fuels::tx::{
-    Address, AssetId, Bytes32, Contract, Input, Output, Receipt, Transaction, TxPointer, UtxoId, Word,
+    Address, AssetId, Bytes32, Contract, Input, Output, Receipt, Transaction, TxPointer, UtxoId,
+    Word,
 };
 
 const CONTRACT_MESSAGE_MIN_GAS: u64 = 1_200_000;
@@ -42,7 +43,6 @@ pub async fn build_contract_message_tx(
         state_root: Bytes32::zeroed(),
     });
 
-
     // Build a change output for the owner of the provided gas coin input
     match gas_coin {
         Input::CoinSigned { owner, .. } | Input::CoinPredicate { owner, .. } => {
@@ -77,7 +77,7 @@ pub async fn build_contract_message_tx(
         contract_id: contract_id.into(),
     };
 
-    tx_inputs.push(contract_input);  // TO DO : is this right ? 
+    tx_inputs.push(contract_input); // TO DO : is this right ?
     tx_inputs.push(message);
     tx_inputs.push(gas_coin);
 
@@ -96,7 +96,6 @@ pub async fn build_contract_message_tx(
     }
 }
 
-
 /// Signs and broadcasts a transaction
 pub async fn sign_and_call_tx(wallet: &WalletUnlocked, tx: &mut Transaction) -> Vec<Receipt> {
     // Get provider and client
@@ -108,29 +107,17 @@ pub async fn sign_and_call_tx(wallet: &WalletUnlocked, tx: &mut Transaction) -> 
     script.call(provider).await.unwrap()
 }
 
-
 /// Builds and broadcasts as transaction relaying a message
-pub async fn relay_message_to_contract(
-    wallet: &WalletUnlocked,
-    message: Input
-) -> Vec<Receipt> {
-
-
+pub async fn relay_message_to_contract(wallet: &WalletUnlocked, message: Input) -> Vec<Receipt> {
     // TO DO: Extract contract ID from message
     let contract_id = ContractId::from([0u8; 32]);
-
 
     // TO DO: Get a coin from the wallet to pay for gas
     let gas_coin = Input::CoinSigned();
 
     // Build transaction
-    let mut tx = build_contract_message_tx(
-        message,
-        contract_id,
-        gas_coin,
-        TxParameters::default(),
-    )
-    .await;
+    let mut tx =
+        build_contract_message_tx(message, contract_id, gas_coin, TxParameters::default()).await;
 
     // Sign transaction and call
     sign_and_call_tx(wallet, &mut tx).await
