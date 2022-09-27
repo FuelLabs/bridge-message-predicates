@@ -68,7 +68,7 @@ pub async fn build_contract_message_tx(
     // Start building tx list of inputs
     let mut tx_inputs: Vec<Input> = Vec::new();
 
-    // Build contract input   TO DO: Is this zeroing correct ?
+    // Build contract input
     let contract_input = Input::Contract {
         utxo_id: UtxoId::new(Bytes32::zeroed(), 0u8),
         balance_root: Bytes32::zeroed(),
