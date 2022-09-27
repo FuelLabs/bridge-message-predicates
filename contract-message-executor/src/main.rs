@@ -22,6 +22,7 @@ async fn main() {
 
     // Relay the messages
     for message in unspent_messages {
+        // TO DO: `message` is a `fuels::client::schema::message::Message`, but we need a `fuels::tx::Input`
         //utils::relay_message_to_contract(&wallet, message);
     }
 }
