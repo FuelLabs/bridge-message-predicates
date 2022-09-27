@@ -68,7 +68,7 @@ pub async fn build_contract_message_tx(
     // Start building tx list of inputs
     let mut tx_inputs: Vec<Input> = Vec::new();
 
-    // Build contract input
+    // Build contract input   TO DO: Is this zeroing correct ? 
     let contract_input = Input::Contract {
         utxo_id: UtxoId::new(Bytes32::zeroed(), 0u8),
         balance_root: Bytes32::zeroed(),
@@ -77,7 +77,7 @@ pub async fn build_contract_message_tx(
         contract_id: contract_id.into(),
     };
 
-    tx_inputs.push(contract_input); // TO DO : is this right ?
+    tx_inputs.push(contract_input);
     tx_inputs.push(message);
     tx_inputs.push(gas_coin);
 
@@ -109,11 +109,19 @@ pub async fn sign_and_call_tx(wallet: &WalletUnlocked, tx: &mut Transaction) -> 
 
 /// Builds and broadcasts as transaction relaying a message
 pub async fn relay_message_to_contract(wallet: &WalletUnlocked, message: Input) -> Vec<Receipt> {
-    // TO DO: Extract contract ID from message
+    // TO DO: Extract contract ID from message data
     let contract_id = ContractId::from([0u8; 32]);
 
     // TO DO: Get a coin from the wallet to pay for gas
-    let gas_coin = Input::CoinSigned();
+    let gas_coin = Input::CoinSigned {
+        utxo_id: UtxoId::default(),
+        owner: Address::default(),
+        amount: 0,
+        asset_id: AssetId::default(),
+        tx_pointer: TxPointer::default(),
+        witness_index: 0,
+        maturity: 0,
+    };
 
     // Build transaction
     let mut tx =
