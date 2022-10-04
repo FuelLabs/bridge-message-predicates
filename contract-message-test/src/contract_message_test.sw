@@ -1,11 +1,11 @@
 contract;
 
 dep contract_message_test_abi;
-dep utils;
+dep transaction_utils;
 
 use contract_message_receiver::MessageReceiver;
 use contract_message_test_abi::VerifyMessageData;
-use utils::{input_message_data, input_message_data_length};
+use transaction_utils::{input_message_data, input_message_data_length};
 use std::{address::Address, constants::ZERO_B256, contract_id::ContractId};
 
 storage {

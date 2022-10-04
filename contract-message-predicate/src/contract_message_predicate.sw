@@ -27,7 +27,7 @@ use transaction_utils::{
 // CONSTANTS //
 ///////////////
 // The minimum gas limit for the transaction not to revert out-of-gas
-// TODO: research what gas amount is reasonable
+// TODO: research what gas amount is reasonable and possibly move to config time
 const MIN_GAS = 1_200_000;
 
 // The hash of the script which must spend the input belonging to this predicate
