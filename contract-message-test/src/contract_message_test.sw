@@ -6,7 +6,7 @@ dep transaction_utils;
 use contract_message_receiver::MessageReceiver;
 use contract_message_test_abi::VerifyMessageData;
 use transaction_utils::{input_message_data, input_message_data_length};
-use std::{address::Address, constants::ZERO_B256, contract_id::ContractId};
+use std::constants::ZERO_B256;
 
 storage {
     counter: u64 = 0,

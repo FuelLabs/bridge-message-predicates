@@ -1,7 +1,5 @@
 library contract_message_test_abi;
 
-use std::{address::Address, contract_id::ContractId};
-
 abi VerifyMessageData {
     #[storage(read)]
     fn get_test_counter() -> u64;

@@ -1,7 +1,6 @@
 library transaction_utils;
 
-use std::constants::ZERO_B256;
-use std::mem::read;
+use std::{constants::ZERO_B256, mem::read};
 
 // TODO: replace GTF consts with direct references to tx.sw, inputs.sw, and outputs.sw from std lib
 const GTF_SCRIPT_GAS_PRICE = 0x002;

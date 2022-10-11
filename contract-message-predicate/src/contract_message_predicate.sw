@@ -2,7 +2,7 @@ predicate;
 
 dep transaction_utils;
 
-use std::{assert::assert, constants::ZERO_B256};
+use std::constants::ZERO_B256;
 use transaction_utils::{
     input_coin_amount,
     input_coin_asset_id,
@@ -31,7 +31,7 @@ use transaction_utils::{
 const MIN_GAS = 1_200_000;
 
 // The hash of the script which must spend the input belonging to this predicate
-const SPENDING_SCRIPT_HASH = 0x054db8e175fcbbb08c5702d0ba274918d1f1bfac703580ffd9cdac1074e0d808;
+const SPENDING_SCRIPT_HASH = 0x2df68a844ce3a795e8776a3bb2a404a1ad97b32cc1449af06a692bce85a5d7ab;
 
 // The input and output index values
 const INPUT_CONTRACT_INDEX = 0u8;
