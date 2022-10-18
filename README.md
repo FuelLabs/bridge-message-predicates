@@ -32,7 +32,7 @@ The message to contract predicate relies on a script that performs only the foll
 
 | dep     | version                                                  |
 | ------- | -------------------------------------------------------- |
-| Forc    | [0.25.2](https://fuellabs.github.io/sway/v0.24.0/introduction/installation.html) |
+| Forc    | [0.25.2](https://fuellabs.github.io/sway/v0.25.2/introduction/installation.html) |
 
 ### Building
 
