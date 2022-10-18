@@ -8,5 +8,5 @@ if [ $PROJECT = 'contract-message-test' ]; then
     forc build --path ../contract-message-script
     forc build --path ../contract-message-test
 
-    forc test
+    cargo test
 fi
