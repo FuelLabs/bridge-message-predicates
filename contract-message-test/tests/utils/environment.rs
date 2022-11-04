@@ -9,7 +9,7 @@ use fuels::prelude::*;
 use fuels::signers::fuel_crypto::SecretKey;
 use fuels::test_helpers::{setup_single_message, setup_test_client, Config};
 use fuels::tx::{
-    Address, AssetId, Bytes32, Input, Output, Receipt, TxPointer, UtxoId, Word, Script,
+    Address, AssetId, Bytes32, Input, Output, Receipt, Script, TxPointer, UtxoId, Word,
 };
 
 abigen!(
@@ -92,8 +92,7 @@ pub async fn setup_environment(
     )
     .await
     .unwrap();
-    let test_contract =
-        TestContract::new(test_contract_id.clone(), wallet.clone());
+    let test_contract = TestContract::new(test_contract_id.clone(), wallet.clone());
 
     // Build inputs for provided coins
     let coin_inputs: Vec<Input> = all_coins

@@ -73,9 +73,9 @@ pub fn input_message_data_length(index: u64) -> u64 {
 
 /// Get the data of a message input
 pub fn input_message_data<T>(index: u64, offset: u64) -> T {
-    let data = __gtf::<raw_ptr>(index, GTF_INPUT_MESSAGE_DATA);
-    let data_with_offset = data + offset;
-    data_with_offset.read::<T>()
+    // TODO: look into supporting per byte offsets
+    let data_ptr = __gtf::<raw_ptr>(index, GTF_INPUT_MESSAGE_DATA);
+    data_ptr.add::<u64>(offset / 8).read::<T>()
 }
 
 /// Get the ID of a contract input

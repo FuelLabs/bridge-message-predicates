@@ -1,6 +1,6 @@
 use fuels::prelude::*;
 use fuels::tx::{
-    Address, AssetId, Bytes32, Contract as tx_contract, Input, Output, Transaction, Word, Script,
+    Address, AssetId, Bytes32, Contract as tx_contract, Input, Output, Script, Transaction, Word,
 };
 
 const CONTRACT_MESSAGE_MIN_GAS: u64 = 1_200_000;

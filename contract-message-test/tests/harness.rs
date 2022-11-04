@@ -45,11 +45,12 @@ mod success {
 
         // Verify test contract received the message with the correct data
         let test_contract_id: ContractId = test_contract.get_contract_id().into();
-        let test_contract_counter = test_contract.methods().get_test_counter().call().await.unwrap().value;
-        let test_contract_data1 = test_contract.methods().get_test_data1().call().await.unwrap().value;
-        let test_contract_data2 = test_contract.methods().get_test_data2().call().await.unwrap().value;
-        let test_contract_data3 = test_contract.methods().get_test_data3().call().await.unwrap().value;
-        let test_contract_data4 = test_contract.methods().get_test_data4().call().await.unwrap().value;
+        let methods = test_contract.methods();
+        let test_contract_counter = methods.get_test_counter().call().await.unwrap().value;
+        let test_contract_data1 = methods.get_test_data1().call().await.unwrap().value;
+        let test_contract_data2 = methods.get_test_data2().call().await.unwrap().value;
+        let test_contract_data3 = methods.get_test_data3().call().await.unwrap().value;
+        let test_contract_data4 = methods.get_test_data4().call().await.unwrap().value;
         assert_eq!(test_contract_counter, 1);
         assert_eq!(test_contract_data1, test_contract_id);
         assert_eq!(test_contract_data2, data_word);
