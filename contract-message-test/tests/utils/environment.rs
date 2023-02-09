@@ -49,8 +49,7 @@ pub async fn setup_environment(
             coin_amount: coin.0,
         })
         .collect();
-    let all_coins =
-        setup_custom_assets_coins(wallet.address(), &asset_configs[..]);
+    let all_coins = setup_custom_assets_coins(wallet.address(), &asset_configs[..]);
 
     // Generate messages
     let message_nonce: Word = Word::default();

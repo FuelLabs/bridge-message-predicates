@@ -10,9 +10,9 @@ mod success {
     use std::str::FromStr;
 
     use crate::utils::environment as env;
-    use fuels::types::Bits256;
     use fuels::test_helpers::DEFAULT_COIN_AMOUNT;
     use fuels::tx::{Address, AssetId, Bytes32, ContractId};
+    use fuels::types::Bits256;
 
     pub const RANDOM_SALT: &str =
         "0x1a896ebd5f55c10bc830755278e6d2b9278b4177b8bca400d3e7710eee293786";
