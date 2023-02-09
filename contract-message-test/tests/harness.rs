@@ -312,7 +312,7 @@ mod fail {
     }
 
     #[tokio::test]
-    #[should_panic(expected = "transaction predicate verification failed")]
+    #[should_panic(expected = "The transaction contains a predicate which failed to validate")]
     async fn relay_message_with_too_little_gas() {
         let message_data = env::prefix_contract_id(vec![]).await;
         let message = (100, message_data);
