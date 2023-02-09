@@ -17,6 +17,14 @@ dependencies = [
 ]
 
 [[package]]
+name = 'contract_message_test'
+source = 'member'
+dependencies = [
+    'contract_message_receiver',
+    'std',
+]
+
+[[package]]
 name = 'core'
 source = 'path+from-root-3CB3840D8F59CE00'
 
