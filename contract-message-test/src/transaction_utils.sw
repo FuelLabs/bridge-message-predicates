@@ -1,8 +1,8 @@
 library transaction_utils;
 
 // TODO: replace GTF consts with direct references to tx.sw, inputs.sw, and outputs.sw from std lib
-const GTF_INPUT_MESSAGE_DATA_LENGTH = 0x11B;
-const GTF_INPUT_MESSAGE_DATA = 0x11E;
+const GTF_INPUT_MESSAGE_DATA_LENGTH = 0x11A;
+const GTF_INPUT_MESSAGE_DATA = 0x11D;
 
 /// Get the length of a message input data
 pub fn input_message_data_length(index: u64) -> u64 {
