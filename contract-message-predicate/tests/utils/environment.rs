@@ -7,20 +7,18 @@ use std::str::FromStr;
 use fuels::prelude::*;
 use fuels::signers::fuel_crypto::SecretKey;
 use fuels::test_helpers::{setup_single_message, setup_test_client, Config};
-use fuels::tx::{
-    Address, AssetId, Bytes32, Input, Output, Receipt, Script, TxPointer, UtxoId, Word,
-};
+use fuels::tx::{Address, AssetId, Bytes32, Input, Receipt, Script, TxPointer, UtxoId, Word};
 use fuels::types::message::Message;
 
 abigen!(Contract(
     name = "TestContract",
-    abi = "./contract-message-test/out/debug/contract_message_test-abi.json"
+    abi = "./contract-message-predicate/out/debug/contract_message_test-abi.json"
 ));
 
 pub const MESSAGE_SENDER_ADDRESS: &str =
     "0xca400d3e7710eee293786830755278e6d2b9278b4177b8b1a896ebd5f55c10bc";
 pub const TEST_RECEIVER_CONTRACT_BINARY: &str =
-    "../contract-message-test/out/debug/contract_message_test.bin";
+    "./out/debug/contract_message_test.bin";
 
 /// Sets up a test fuel environment with a funded wallet
 pub async fn setup_environment(
@@ -54,7 +52,8 @@ pub async fn setup_environment(
     // Generate messages
     let message_nonce: Word = Word::default();
     let message_sender = Address::from_str(MESSAGE_SENDER_ADDRESS).unwrap();
-    let (predicate_bytecode, predicate_root) = builder::get_contract_message_predicate().await;
+    let predicate_bytecode = contract_message_predicate::predicate_bytecode();
+    let predicate_root = Address::from(contract_message_predicate::predicate_root());
     let all_messages: Vec<Message> = messages
         .iter()
         .flat_map(|message| {
@@ -123,7 +122,7 @@ pub async fn setup_environment(
         })
         .collect();
 
-    // Build contract input
+    // Build contract inputs
     let contract_input = Input::Contract {
         utxo_id: UtxoId::new(Bytes32::zeroed(), 0u8),
         balance_root: Bytes32::zeroed(),
@@ -147,16 +146,12 @@ pub async fn relay_message_to_contract(
     message: Input,
     contract: Input,
     gas_coin: Input,
-    optional_inputs: &[Input],
-    optional_outputs: &[Output],
 ) -> Vec<Receipt> {
     // Build transaction
     let mut tx = builder::build_contract_message_tx(
         message,
-        contract,
-        gas_coin,
-        optional_inputs,
-        optional_outputs,
+        &vec![contract, gas_coin],
+        &vec![],
         TxParameters::default(),
     )
     .await;

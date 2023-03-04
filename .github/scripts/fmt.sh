@@ -2,7 +2,6 @@
 
 PROJECT=$1
 
-if [ $PROJECT = 'contract-message-test' ]; then
-    cd $PROJECT
+if [ $PROJECT = 'contract-message-predicate' ]; then
     cargo fmt --verbose --check
 fi

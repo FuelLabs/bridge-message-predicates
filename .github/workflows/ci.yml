@@ -42,9 +42,7 @@ jobs:
       matrix:
         project: [
           'contract-message-predicate',
-          'contract-message-receiver',
-          'contract-message-script',
-          'contract-message-test'
+          'contract-message-receiver'
           ]
 
     steps:
