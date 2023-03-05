@@ -17,8 +17,7 @@ abigen!(Contract(
 
 pub const MESSAGE_SENDER_ADDRESS: &str =
     "0xca400d3e7710eee293786830755278e6d2b9278b4177b8b1a896ebd5f55c10bc";
-pub const TEST_RECEIVER_CONTRACT_BINARY: &str =
-    "./out/debug/contract_message_test.bin";
+pub const TEST_RECEIVER_CONTRACT_BINARY: &str = "./out/debug/contract_message_test.bin";
 
 /// Sets up a test fuel environment with a funded wallet
 pub async fn setup_environment(
@@ -195,4 +194,12 @@ pub fn decode_hex(s: &str) -> Vec<u8> {
         .map(|i| u8::from_str_radix(&s[i..i + 2], 16))
         .collect();
     data.unwrap()
+}
+
+/// Contructs test message data
+pub async fn message_data(word: u64, bytes: &str, address: &str) -> Vec<u8> {
+    let mut message_data = word.to_be_bytes().to_vec();
+    message_data.append(&mut decode_hex(bytes));
+    message_data.append(&mut decode_hex(address));
+    prefix_contract_id(message_data).await
 }

@@ -5,8 +5,8 @@ use fuel_tx::Contract;
 use sha2::{Digest, Sha256};
 
 // Make the script and predicate bytecode public
-pub use script_asm::bytecode as script_bytecode;
 pub use predicate_asm::bytecode as predicate_bytecode;
+pub use script_asm::bytecode as script_bytecode;
 
 // Gets the hash of the message-to-contract script
 pub fn script_hash() -> [u8; 32] {

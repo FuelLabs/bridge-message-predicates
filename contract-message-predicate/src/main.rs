@@ -1,6 +1,6 @@
+use fuel_tx::{Address, Bytes32};
 use std::fs;
 use std::path::Path;
-use fuel_tx::{Bytes32, Address};
 
 const OUTPUT_DIR: &str = "./out";
 const SCRIPT_BUILD_PATH: &str = "./out/contract_message_script.bin";
