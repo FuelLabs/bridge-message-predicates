@@ -8,9 +8,8 @@ The Message to Contract Predicate is for messages that are trying to send a data
 
 ### Message to Contract Script
 
-The message to contract predicate relies on a script that performs only the following operations:
-- Transfer the exact amount of base asset specified in the `InputMessage` `amount` field to the contract with ID that matches the first 32 bytes in the message data field
-- Call the function `process_message` on the contract with ID that matches the first 32 bytes in the message data field
+The message to contract predicate relies on a script that performs only the following operation:
+- Call the function `process_message` on the contract with ID that matches the first 32 bytes in the message data field, while forwarding the exact amount of base asset specified in the `InputMessage` `amount` field
 
 ## Building From Source
 
