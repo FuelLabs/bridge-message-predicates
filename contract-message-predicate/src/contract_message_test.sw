@@ -2,7 +2,7 @@ contract;
 
 use contract_message_receiver::MessageReceiver;
 use std::constants::ZERO_B256;
-use std::inputs::{GTF_INPUT_MESSAGE_DATA, GTF_INPUT_MESSAGE_DATA_LENGTH};
+use std::inputs::{GTF_INPUT_MESSAGE_DATA, input_message_data_length};
 
 storage {
     counter: u64 = 0,
@@ -26,11 +26,6 @@ abi VerifyMessageData {
     fn get_test_data4() -> Address;
 }
 
-// Get the length of a message input data
-pub fn input_message_data_length(index: u64) -> u64 {
-    __gtf::<u64>(index, GTF_INPUT_MESSAGE_DATA_LENGTH)
-}
-
 // Get the data of a message input
 pub fn input_message_data<T>(index: u64, offset: u64) -> T {
     let data_ptr = __gtf::<raw_ptr>(index, GTF_INPUT_MESSAGE_DATA);
@@ -46,19 +41,19 @@ impl MessageReceiver for Contract {
 
         // Parse the message data
         let data_length = input_message_data_length(msg_idx);
-        if (data_length >= 32) {
+        if (data_length >= 32u16) {
             let contract_id: b256 = input_message_data(msg_idx, 0);
             storage.data1 = ContractId::from(contract_id);
         }
-        if (data_length >= 32 + 8) {
+        if (data_length >= 32u16 + 8u16) {
             let num: u64 = input_message_data(msg_idx, 32);
             storage.data2 = num;
         }
-        if (data_length >= 32 + 8 + 32) {
+        if (data_length >= 32u16 + 8u16 + 32u16) {
             let big_num: b256 = input_message_data(msg_idx, 32 + 8);
             storage.data3 = big_num;
         }
-        if (data_length >= 32 + 8 + 32 + 32) {
+        if (data_length >= 32u16 + 8u16 + 32u16 + 32u16) {
             let address: b256 = input_message_data(msg_idx, 32 + 8 + 32);
             storage.data4 = Address::from(address);
         }
