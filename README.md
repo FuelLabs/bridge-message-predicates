@@ -39,6 +39,7 @@ cargo test
 Code must be formatted.
 
 ```sh
+forc fmt
 cargo fmt
 ```
 

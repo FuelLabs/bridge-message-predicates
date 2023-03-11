@@ -1,5 +1,2 @@
 [workspace]
-members = [
-  "contract-message-receiver",
-  "contract-message-predicate"
-]
+members = ["contract-message-receiver", "contract-message-predicate"]
