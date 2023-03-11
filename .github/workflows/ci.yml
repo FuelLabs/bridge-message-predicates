@@ -37,8 +37,6 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
-
-    strategy:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
