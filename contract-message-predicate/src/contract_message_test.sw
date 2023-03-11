@@ -1,8 +1,9 @@
 contract;
 
 use contract_message_receiver::MessageReceiver;
+use std::bytes::Bytes;
 use std::constants::ZERO_B256;
-use std::inputs::{GTF_INPUT_MESSAGE_DATA, input_message_data_length};
+use std::inputs::{input_message_data, input_message_data_length};
 
 storage {
     counter: u64 = 0,
@@ -26,10 +27,13 @@ abi VerifyMessageData {
     fn get_test_data4() -> Address;
 }
 
-// Get the data of a message input
-pub fn input_message_data<T>(index: u64, offset: u64) -> T {
-    let data_ptr = __gtf::<raw_ptr>(index, GTF_INPUT_MESSAGE_DATA);
-    data_ptr.add::<u64>(offset / 8).read::<T>()
+// Converts a Bytes type to u64
+//TODO: remove once an [into(self) -> u64] is added for the Bytes type
+fn into_u64(b: Bytes) -> u64 {
+    asm(ptr: b.buf.ptr, r0) {
+        lw r0 ptr i0;
+        r0: u64
+    }
 }
 
 // Implement the process_message function required to be a message receiver
@@ -42,19 +46,19 @@ impl MessageReceiver for Contract {
         // Parse the message data
         let data_length = input_message_data_length(msg_idx);
         if (data_length >= 32u16) {
-            let contract_id: b256 = input_message_data(msg_idx, 0);
+            let contract_id: b256 = input_message_data(msg_idx, 0).into();
             storage.data1 = ContractId::from(contract_id);
         }
         if (data_length >= 32u16 + 8u16) {
-            let num: u64 = input_message_data(msg_idx, 32);
+            let num: u64 = into_u64(input_message_data(msg_idx, 32));
             storage.data2 = num;
         }
         if (data_length >= 32u16 + 8u16 + 32u16) {
-            let big_num: b256 = input_message_data(msg_idx, 32 + 8);
+            let big_num: b256 = input_message_data(msg_idx, 32 + 8).into();
             storage.data3 = big_num;
         }
         if (data_length >= 32u16 + 8u16 + 32u16 + 32u16) {
-            let address: b256 = input_message_data(msg_idx, 32 + 8 + 32);
+            let address: b256 = input_message_data(msg_idx, 32 + 8 + 32).into();
             storage.data4 = Address::from(address);
         }
     }
