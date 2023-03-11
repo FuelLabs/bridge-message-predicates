@@ -32,9 +32,9 @@ pub fn bytecode() -> Vec<u8> {
     /* The following assembly code is intended to do the following:
      *  -Verify that the script bytecode hash for the transaction matches that of
      *   the expected Message to Contract script
-     *  -Verify there are no other `InputMessages` with data in the transaction 
+     *  -Verify there are no other `InputMessages` with data in the transaction
      *   other than the first input
-     * 
+     *
      * If these conditions are met, then the predicate evaluates as true.
      */
     let mut predicate: Vec<u8> = vec![
