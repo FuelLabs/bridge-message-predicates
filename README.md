@@ -4,7 +4,7 @@ Most messages sent from the base chain to Fuel will use a predicate as the messa
 
 ## Message to Contract Predicate
 
-The Message to Contract Predicate is for messages that are trying to send a data payload to a designated Fuel contract. This predicate simply verifies that the script bytecode hash for the transaction matches for the designated [Message to Contract Script](#message-to-contract-script). If this condition is met, then the predicate evaluates as true.
+The Message to Contract Predicate is for messages that are trying to send a data payload to a designated Fuel contract. This predicate verifies that the script bytecode hash for the transaction matches for the designated [Message to Contract Script](#message-to-contract-script) and that there are no other `InputMessages` with data in the transaction other than the first input. If these conditions are met, then the predicate evaluates as true.
 
 ### Message to Contract Script
 

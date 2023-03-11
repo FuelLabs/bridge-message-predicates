@@ -10,7 +10,6 @@ const BYTES_PER_WORD: u16 = 8;
 pub fn bytecode() -> Vec<u8> {
     //register names
     const ZERO: RegId = RegId::ZERO;
-    const ONE: RegId = RegId::ONE;
     const STACK_PTR: RegId = RegId::SP;
     const INSTR_START: RegId = RegId::IS;
     const CGAS: RegId = RegId::CGAS;
@@ -21,7 +20,11 @@ pub fn bytecode() -> Vec<u8> {
     const FN_SELECTOR: u8 = 0x13;
     const MSG_AMOUNT: u8 = 0x14;
 
-    //assembly instructions
+    /* The following assembly code is intended to do the following:
+     *  -Call the function `process_message` on the contract with ID that matches
+     *   the first 32 bytes in the message data field, while forwarding the exact
+     *   amount of base asset specified in the `InputMessage` `amount` field
+     */
     let mut script: Vec<u8> = vec![
         //extend stack for contract call data
         op::move_(MEMORY_START_PTR, STACK_PTR), //MEMORY_START_PTR = stack pointer
@@ -36,7 +39,7 @@ pub fn bytecode() -> Vec<u8> {
         op::sw(CALL_DATA_PTR, ZERO, (32 + 8) / BYTES_PER_WORD), //the 8bytes at CALL_DATA_PTR + 32 + 8 = 0
         //make contract call
         op::call(CALL_DATA_PTR, MSG_AMOUNT, ASSET_ID_PTR, CGAS),
-        op::ret(ONE),
+        op::ret(ZERO),
         op::noop(),
         //referenced data (function selector)
         //00000000 9532D7AE
