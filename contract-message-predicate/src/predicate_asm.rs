@@ -44,7 +44,7 @@ pub fn bytecode() -> Vec<u8> {
         op::gtf(SCRIPT_LEN, ZERO, GTF_SCRIPT_LEN), //SCRIPT_LEN = script data length
         op::s256(SCRIPT_HASH_PTR, SCRIPT_PTR, SCRIPT_LEN), //32bytes at SCRIPT_HASH_PTR = hash of the script
         //compare hash with expected
-        op::addi(EXPECTED_HASH_PTR, INSTR_START, 20 * BYTES_PER_INSTR), //EXPECTED_HASH_PTR = address of reference data at end of program
+        op::addi(EXPECTED_HASH_PTR, INSTR_START, 19 * BYTES_PER_INSTR), //EXPECTED_HASH_PTR = address of reference data at end of program
         op::movi(VAL_32, 32),                                           //VAL_32 = 32
         op::meq(COMPARE_RESULT, EXPECTED_HASH_PTR, SCRIPT_HASH_PTR, VAL_32), //COMPARE_RESULT = if the 32bytes at SCRIPT_HASH_PTR equals the 32bytes at EXPECTED_HASH_PTR
         op::jnei(COMPARE_RESULT, ONE, 18), //jumps to PREDICATE_FAILURE if COMPARE_RESULT is not 1
@@ -64,8 +64,7 @@ pub fn bytecode() -> Vec<u8> {
         op::ret(ONE),
         //PREDICATE_FAILURE:
         op::ret(ZERO),
-        op::noop(),
-        //word aligned referenced data (expected script hash)
+        //referenced data (expected script hash)
         //00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
     ]
     .into_iter()

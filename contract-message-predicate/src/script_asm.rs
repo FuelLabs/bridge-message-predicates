@@ -48,7 +48,7 @@ pub fn bytecode() -> Vec<u8> {
         op::call(CALL_DATA_PTR, MSG_AMOUNT, ASSET_ID_PTR, CGAS),
         op::ret(ZERO),
         op::noop(),
-        //referenced data (function selector)
+        //word aligned referenced data (function selector)
         //00000000 00000000
     ]
     .into_iter()
