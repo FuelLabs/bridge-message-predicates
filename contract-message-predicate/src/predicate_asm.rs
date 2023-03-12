@@ -7,7 +7,6 @@ const GTF_INPUT_TYPE: u16 = 0x101;
 const GTF_MSG_DATA_LEN: u16 = 0x11A;
 
 const INPUT_MESSAGE_TYPE: u16 = 2;
-const INSTR_PER_WORD: u16 = 2;
 const BYTES_PER_INSTR: u16 = 4;
 
 // Gets the bytecode for the message-to-contract predicate
@@ -22,7 +21,6 @@ pub fn bytecode() -> Vec<u8> {
     const SCRIPT_LEN: u8 = 0x12;
     const EXPECTED_HASH_PTR: u8 = 0x13;
     const COMPARE_RESULT: u8 = 0x14;
-    const ERR_CODE: u8 = 0x15;
     const VAL_32: u8 = 0x16;
     const INPUT_INDEX: u8 = 0x17;
     const INPUT_TYPE: u8 = 0x18;
@@ -47,7 +45,7 @@ pub fn bytecode() -> Vec<u8> {
         op::s256(SCRIPT_HASH_PTR, SCRIPT_PTR, SCRIPT_LEN), //32bytes at SCRIPT_HASH_PTR = hash of the script
         //compare hash with expected
         op::addi(EXPECTED_HASH_PTR, INSTR_START, 20 * BYTES_PER_INSTR), //EXPECTED_HASH_PTR = address of reference data at end of program
-        op::addi(VAL_32, ZERO, 32),                                     //VAL_32 = 32
+        op::movi(VAL_32, 32),                                           //VAL_32 = 32
         op::meq(COMPARE_RESULT, EXPECTED_HASH_PTR, SCRIPT_HASH_PTR, VAL_32), //COMPARE_RESULT = if the 32bytes at SCRIPT_HASH_PTR equals the 32bytes at EXPECTED_HASH_PTR
         op::jnei(COMPARE_RESULT, ONE, 18), //jumps to PREDICATE_FAILURE if COMPARE_RESULT is not 1
         //confirm that no other messages with data are included
@@ -62,21 +60,18 @@ pub fn bytecode() -> Vec<u8> {
         op::gtf(INPUT_MSG_DATA_LEN, INPUT_INDEX, GTF_MSG_DATA_LEN), //INPUT_MSG_DATA_LEN = the data length of input[INPUT_INDEX]
         op::jnei(INPUT_MSG_DATA_LEN, ZERO, 18), //jumps to PREDICATE_FAILURE if INPUT_MSG_DATA_LEN does not equal 0
         //SKIP_DATA_CHECK:
-        op::jnei(INPUT_INDEX, ONE, 11), //jumps back to INPUT_LOOP_START if INPUT_INDEX does not equal 1
+        op::jnei(INPUT_INDEX, ONE, 11), //jumps back to LOOP_START if INPUT_INDEX does not equal 1
         op::ret(ONE),
         //PREDICATE_FAILURE:
-        op::lw(ERR_CODE, INSTR_START, 28 / INSTR_PER_WORD), //ERR_CODE = last word of reference at the end of the program
-        op::rvrt(ERR_CODE),
-        //referenced data (expected script hash, error code return)
+        op::ret(ZERO),
+        op::noop(),
+        //word aligned referenced data (expected script hash)
         //00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
-        //FFFFFFFF FFFF0004
     ]
     .into_iter()
     .collect();
 
-    //add referenced data
+    //add referenced data (expected script hash)
     predicate.append(&mut crate::script_hash().to_vec());
-    predicate.append(&mut vec![0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x04]);
-
     predicate
 }
