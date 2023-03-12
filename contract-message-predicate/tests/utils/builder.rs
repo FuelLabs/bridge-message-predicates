@@ -18,11 +18,8 @@ pub async fn build_contract_message_tx(
     let script_bytecode = contract_message_predicate::script_bytecode();
 
     // Start building list of inputs and outputs
-    let mut tx_outputs: Vec<Output> = Vec::new();
-    let mut tx_inputs: Vec<Input> = Vec::new();
-
-    // The first input is the message
-    tx_inputs.push(message);
+    let mut tx_outputs: Vec<Output> = outputs.to_vec();
+    let mut tx_inputs: Vec<Input> = vec![message];
 
     // Loop through inputs and add to lists
     let mut change = HashMap::new();
@@ -56,9 +53,6 @@ pub async fn build_contract_message_tx(
             asset_id: asset_id.clone(),
         });
     }
-
-    // Add remaining outputs
-    tx_outputs.append(&mut outputs.to_vec());
 
     // Add variable output
     tx_outputs.push(Output::Variable {

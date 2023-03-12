@@ -18,7 +18,16 @@ fn main() {
     println!("Script hash: 0x{}", Bytes32::from(script_hash));
     println!("Predicate bytecode size is {} bytes.", predicate.len());
     println!("Predicate root: 0x{}", Address::from(predicate_root));
-    fs::create_dir_all(OUTPUT_DIR).unwrap();
-    fs::write(Path::new(SCRIPT_BUILD_PATH), script).unwrap();
-    fs::write(Path::new(PREDICATE_BUILD_PATH), predicate).unwrap();
+    fs::create_dir_all(OUTPUT_DIR).expect(&format!(
+        "Failed to create output directory [{}].",
+        OUTPUT_DIR
+    ));
+    fs::write(Path::new(SCRIPT_BUILD_PATH), script).expect(&format!(
+        "Failed to wite to script binary file output [{}].",
+        SCRIPT_BUILD_PATH
+    ));
+    fs::write(Path::new(PREDICATE_BUILD_PATH), predicate).expect(&format!(
+        "Failed to wite to predicate binary file output [{}].",
+        PREDICATE_BUILD_PATH
+    ));
 }

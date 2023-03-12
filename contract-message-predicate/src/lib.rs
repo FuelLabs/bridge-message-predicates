@@ -12,7 +12,7 @@ pub use script_asm::bytecode as script_bytecode;
 pub fn script_hash() -> [u8; 32] {
     let script = script_asm::bytecode();
     let mut script_hasher = Sha256::new();
-    script_hasher.update(script.clone());
+    script_hasher.update(script);
     script_hasher.finalize().into()
 }
 
