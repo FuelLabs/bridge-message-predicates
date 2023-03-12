@@ -1,5 +1,7 @@
 use fuel_asm::{op, RegId};
+use sha2::{Digest, Sha256};
 
+const PROCESS_MESSAGE_FUNCTION_SIGNATURE: &str = "process_message(u8)";
 const GTF_MSG_DATA: u16 = 0x11D;
 const GTF_MSG_AMOUNT: u16 = 0x117;
 
@@ -8,6 +10,11 @@ const BYTES_PER_WORD: u16 = 8;
 
 // Gets the bytecode for the message-to-contract script
 pub fn bytecode() -> Vec<u8> {
+    //calculate function selector
+    let mut fn_sel_hasher = Sha256::new();
+    fn_sel_hasher.update(PROCESS_MESSAGE_FUNCTION_SIGNATURE);
+    let fn_sel_hash: [u8; 32] = fn_sel_hasher.finalize().into();
+
     //register names
     const ZERO: RegId = RegId::ZERO;
     const STACK_PTR: RegId = RegId::SP;
@@ -42,12 +49,13 @@ pub fn bytecode() -> Vec<u8> {
         op::ret(ZERO),
         op::noop(),
         //referenced data (function selector)
-        //00000000 9532D7AE
+        //00000000 00000000
     ]
     .into_iter()
     .collect();
 
-    //add referenced data
-    script.append(&mut vec![0x00, 0x00, 0x00, 0x00, 0x95, 0x32, 0xD7, 0xAE]);
+    //add referenced data (function selector)
+    script.append(&mut vec![0x00, 0x00, 0x00, 0x00]);
+    script.append(&mut fn_sel_hash[0..4].to_vec());
     script
 }
