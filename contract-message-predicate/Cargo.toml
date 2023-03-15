@@ -14,6 +14,8 @@ sha2 = "0.10.6"
 fuel-core-interfaces = "0.13.2"
 fuels = { version = "0.36", features = ["fuel-core-lib"] }
 tokio = { version = "1.12", features = ["rt", "macros"] }
+insta = "1.28"
+hex = "0.4"
 
 [[test]]
 harness = true
