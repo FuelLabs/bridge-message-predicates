@@ -13,6 +13,8 @@ sha2 = "0.10.6"
 [dev-dependencies]
 fuel-core-interfaces = "0.13.2"
 fuels = { version = "0.36", features = ["fuel-core-lib"] }
+hex = "0.4"
+insta = "1.28"
 tokio = { version = "1.12", features = ["rt", "macros"] }
 
 [[test]]
