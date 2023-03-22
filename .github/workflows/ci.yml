@@ -90,6 +90,8 @@ jobs:
 
       - name: Check Rust formatting
         run: cargo fmt --verbose --check
+
+      - name: Check Rust linting
         run: cargo clippy
           
       - name: Run tests
