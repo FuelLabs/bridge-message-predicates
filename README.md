@@ -1,3 +1,4 @@
+
 # Fuel Bridge Message Predicates
 
 Most messages sent from the base chain to Fuel will use a predicate as the message recipient. These predicates allow anyone to spend the `InputMessage` but verifies that a specific script is used in the transaction to ensure security and reliability that the message is handled appropriately.
