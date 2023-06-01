@@ -1,8 +1,9 @@
 use std::collections::HashMap;
 
 use fuel_core_interfaces::common::prelude::Word;
-use fuels::prelude::*;
-use fuels::tx::{Address, Bytes32, Input, Output};
+use fuels::prelude::{Address, AssetId, ScriptTransaction, TxParameters};
+use fuels::tx::Bytes32;
+use fuels::types::{input::Input, output::Output};
 
 /// Build a message-to-contract transaction with the given input coins and outputs
 /// note: unspent gas is returned to the owner of the first given gas input
@@ -59,6 +60,6 @@ pub async fn build_contract_message_tx(
         asset_id: AssetId::default(),
     });
 
-    // Create the trnsaction
+    // Create the transaction
     ScriptTransaction::new(tx_inputs, tx_outputs, params).with_script(script_bytecode)
 }

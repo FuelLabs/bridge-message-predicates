@@ -4,11 +4,16 @@ use std::mem::size_of;
 use std::num::ParseIntError;
 use std::str::FromStr;
 
-use fuels::prelude::*;
-use fuels::signers::fuel_crypto::SecretKey;
+use fuels::accounts::{fuel_crypto::SecretKey, Signer};
+use fuels::prelude::{
+    abigen, setup_custom_assets_coins, Address, AssetConfig, AssetId, Contract, LoadConfiguration,
+    Provider, ScriptTransaction, TxParameters, WalletUnlocked,
+};
 use fuels::test_helpers::{setup_single_message, setup_test_client, Config};
-use fuels::tx::{Address, AssetId, Bytes32, Input, Receipt, TxPointer, UtxoId, Word};
-use fuels::types::message::Message;
+use fuels::tx::{Bytes32, Receipt};
+use fuels::types::{input::Input, message::Message};
+
+use fuel_tx::{TxPointer, UtxoId, Word};
 
 abigen!(Contract(
     name = "TestContract",
@@ -23,7 +28,13 @@ pub const TEST_RECEIVER_CONTRACT_BINARY: &str = "./out/debug/contract_message_te
 pub async fn setup_environment(
     coins: Vec<(Word, AssetId)>,
     messages: Vec<(Word, Vec<u8>)>,
-) -> (WalletUnlocked, TestContract, Input, Vec<Input>, Vec<Input>) {
+) -> (
+    WalletUnlocked,
+    TestContract<WalletUnlocked>,
+    Input,
+    Vec<Input>,
+    Vec<Input>,
+) {
     // Create secret for wallet
     const SIZE_SECRET_KEY: usize = size_of::<SecretKey>();
     const PADDING_BYTES: usize = SIZE_SECRET_KEY - size_of::<u64>();
@@ -60,7 +71,7 @@ pub async fn setup_environment(
                 &message_sender.into(),
                 &predicate_root.into(),
                 message.0,
-                message_nonce,
+                message_nonce.into(),
                 message.1.clone(),
             )]
         })
@@ -68,27 +79,32 @@ pub async fn setup_environment(
 
     // Create the client and provider
     let provider_config = Config::local_node();
-    let (client, _) = setup_test_client(
+    let (client, _, consensus_params) = setup_test_client(
         all_coins.clone(),
         all_messages.clone(),
         Some(provider_config),
         None,
-        None,
     )
     .await;
-    let provider = Provider::new(client);
+    let provider = Provider::new(client, consensus_params);
 
     // Add provider to wallet
     wallet.set_provider(provider.clone());
 
     // Deploy the target contract used for testing processing messages
-    let test_contract_id = Contract::deploy(
-        TEST_RECEIVER_CONTRACT_BINARY,
-        &wallet,
-        DeployConfiguration::default(),
-    )
-    .await
-    .unwrap();
+    // let test_contract_id = Contract::deploy(
+    //     TEST_RECEIVER_CONTRACT_BINARY,
+    //     &wallet,
+    //     DeployConfiguration::default(),
+    // )
+    // .await
+    // .unwrap();
+    let test_contract_id =
+        Contract::load_from(TEST_RECEIVER_CONTRACT_BINARY, LoadConfiguration::default())
+            .unwrap()
+            .deploy(&wallet, TxParameters::default())
+            .await
+            .unwrap();
     let test_contract = TestContract::new(test_contract_id.clone(), wallet.clone());
 
     // Build inputs for provided coins
@@ -161,20 +177,24 @@ pub async fn relay_message_to_contract(
 /// Relays a message-to-contract message
 pub async fn sign_and_call_tx(wallet: &WalletUnlocked, tx: &mut ScriptTransaction) -> Vec<Receipt> {
     // Get provider and client
-    let provider = wallet.get_provider().unwrap();
+    let provider = wallet.provider().unwrap();
 
     // Sign transaction and call
-    wallet.sign_transaction(tx).await.unwrap();
+    wallet.sign_transaction(tx).unwrap();
     provider.send_transaction(tx).await.unwrap()
 }
 
 /// Prefixes the given bytes with the test contract ID
 pub async fn prefix_contract_id(data: Vec<u8>) -> Vec<u8> {
     // Compute the test contract ID
-    let deploy_configuration = DeployConfiguration::default();
-    let compiled_contract =
-        Contract::load_contract(TEST_RECEIVER_CONTRACT_BINARY, deploy_configuration).unwrap();
-    let (test_contract_id, _) = Contract::compute_contract_id_and_state_root(&compiled_contract);
+    // let deploy_configuration = DeployConfiguration::default();
+    // let compiled_contract =
+    //     Contract::load_contract(TEST_RECEIVER_CONTRACT_BINARY, deploy_configuration).unwrap();
+    // let (test_contract_id, _) = Contract::compute_contract_id_and_state_root(&compiled_contract);
+    let test_contract_id =
+        Contract::load_from(TEST_RECEIVER_CONTRACT_BINARY, LoadConfiguration::default())
+            .unwrap()
+            .contract_id();
 
     // Turn contract id into array with the given data appended to it
     let test_contract_id: [u8; 32] = test_contract_id.into();

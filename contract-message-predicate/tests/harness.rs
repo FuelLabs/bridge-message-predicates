@@ -11,9 +11,9 @@ mod success {
 
     use crate::utils::builder;
     use crate::utils::environment as env;
-    use fuels::prelude::TxParameters;
+    use fuels::prelude::{Address, AssetId, ContractId, TxParameters};
     use fuels::test_helpers::DEFAULT_COIN_AMOUNT;
-    use fuels::tx::{Address, AssetId, Bytes32, ContractId};
+    use fuels::tx::Bytes32;
     use fuels::types::Bits256;
 
     pub const RANDOM_WORD: u64 = 54321u64;
@@ -30,12 +30,15 @@ mod success {
         let data_word = RANDOM_WORD;
         let data_bytes = Bits256(Bytes32::from_str(RANDOM_SALT).unwrap().into());
         let data_address = Address::from_str(RANDOM_SALT2).unwrap();
+
         let mut message_data = data_word.to_be_bytes().to_vec();
         message_data.append(&mut env::decode_hex(RANDOM_SALT));
         message_data.append(&mut env::decode_hex(RANDOM_SALT2));
         let message_data = env::prefix_contract_id(message_data).await;
+
         let message = (100, message_data);
         let coin = (DEFAULT_COIN_AMOUNT, AssetId::default());
+
         let (wallet, test_contract, contract_input, coin_inputs, message_inputs) =
             env::setup_environment(vec![coin], vec![message]).await;
 
@@ -62,7 +65,7 @@ mod success {
         assert_eq!(test_contract_data4, data_address);
 
         // Verify the message value was received by the test contract
-        let provider = wallet.get_provider().unwrap();
+        let provider = wallet.provider().unwrap();
         let test_contract_balance = provider
             .get_contract_asset_balance(test_contract.contract_id(), AssetId::default())
             .await
@@ -112,8 +115,8 @@ mod success {
         assert_eq!(test_contract_data3, data_bytes);
         assert_eq!(test_contract_data4, data_address);
 
-        // Verify the message valuew were received by the test contract
-        let provider = wallet.get_provider().unwrap();
+        // Verify the message values were received by the test contract
+        let provider = wallet.provider().unwrap();
         let test_contract_balance = provider
             .get_contract_asset_balance(test_contract.contract_id(), AssetId::default())
             .await
@@ -129,12 +132,14 @@ mod fail {
 
     use crate::utils::builder;
     use crate::utils::environment as env;
+    use fuel_tx::{TxPointer, UtxoId};
+    use fuels::accounts::Account;
     use fuels::prelude::Salt;
     use fuels::prelude::ScriptTransaction;
     use fuels::prelude::Transaction;
-    use fuels::prelude::TxParameters;
+    use fuels::prelude::{Address, AssetId, TxParameters};
     use fuels::test_helpers::DEFAULT_COIN_AMOUNT;
-    use fuels::tx::{Address, AssetId, Input, TxPointer, UtxoId};
+    use fuels::types::input::Input;
 
     pub const RANDOM_WORD: u64 = 54321u64;
     pub const RANDOM_WORD2: u64 = 123456u64;
@@ -165,7 +170,7 @@ mod fail {
             .await
             .unwrap();
         let predicate_coin = &wallet
-            .get_provider()
+            .provider()
             .unwrap()
             .get_coins(&predicate_root.into(), AssetId::default())
             .await
