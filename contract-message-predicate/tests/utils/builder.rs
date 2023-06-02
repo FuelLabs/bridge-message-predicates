@@ -52,13 +52,8 @@ pub async fn build_contract_message_tx(
         */
         match input {
             Input::ResourceSigned { resource, .. } | Input::ResourcePredicate { resource, .. } => {
-                match resource {
-                    CoinType::Coin(coin) => {
-                        change.insert(coin.asset_id, coin.owner.clone());
-                    }
-                    _ => {
-                        // do nothing
-                    }
+                if let CoinType::Coin(coin) = resource {
+                    change.insert(coin.asset_id, coin.owner.clone());
                 }
             }
             Input::Contract { .. } => {
@@ -75,7 +70,7 @@ pub async fn build_contract_message_tx(
         tx_outputs.push(Output::Change {
             to: owner.clone().into(),
             amount: 0,
-            asset_id: asset_id.clone(),
+            asset_id,
         });
     }
 

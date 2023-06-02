@@ -93,7 +93,7 @@ mod success {
                 contract_input.clone(),
                 coin_inputs[0].clone(),
             ],
-            &vec![],
+            &[],
             TxParameters::default(),
         )
         .await;
@@ -132,11 +132,9 @@ mod fail {
 
     use crate::utils::builder;
     use crate::utils::environment as env;
-    use fuel_tx::{TxPointer, UtxoId};
+
     use fuels::accounts::Account;
     use fuels::prelude::Salt;
-    use fuels::prelude::ScriptTransaction;
-    use fuels::prelude::Transaction;
     use fuels::prelude::{Address, AssetId, TxParameters};
     use fuels::test_helpers::DEFAULT_COIN_AMOUNT;
     use fuels::types::input::Input;
@@ -198,7 +196,7 @@ mod fail {
                 amount: 100,
                 block_created: 0,
                 asset_id: AssetId::default(),
-                utxo_id: UtxoId::from(predicate_coin.utxo_id.clone()),
+                utxo_id: predicate_coin.utxo_id,
                 maturity: 0,
                 owner: predicate_root.into(),
                 status: Unspent,
@@ -210,7 +208,7 @@ mod fail {
         let (mut tx, _, _) = builder::build_contract_message_tx(
             coin_as_message,
             &vec![contract_input.clone(), coin_inputs[0].clone()],
-            &vec![],
+            &[],
             TxParameters::default(),
         )
         .await;
@@ -231,7 +229,7 @@ mod fail {
         let (mut tx, _, _) = builder::build_contract_message_tx(
             message_inputs[0].clone(),
             &vec![coin_inputs[0].clone()],
-            &vec![],
+            &[],
             TxParameters::default(),
         )
         .await;
@@ -252,7 +250,7 @@ mod fail {
         let (mut tx, _, _) = builder::build_contract_message_tx(
             message_inputs[0].clone(),
             &vec![contract_input.clone(), coin_inputs[0].clone()],
-            &vec![],
+            &[],
             TxParameters::default(),
         )
         .await;
@@ -282,7 +280,7 @@ mod fail {
                 contract_input.clone(),
                 coin_inputs[0].clone(),
             ],
-            &vec![],
+            &[],
             TxParameters::default(),
         )
         .await;
@@ -300,10 +298,10 @@ mod fail {
         let (wallet, _, contract_input, coin_inputs, message_inputs) =
             env::setup_environment(vec![coin], vec![message]).await;
 
-        let (tx, tx_inputs, tx_outputs) = builder::build_contract_message_tx(
+        let (_tx, tx_inputs, tx_outputs) = builder::build_contract_message_tx(
             message_inputs[0].clone(),
             &vec![contract_input.clone(), coin_inputs[0].clone()],
-            &vec![],
+            &[],
             TxParameters::default(),
         )
         .await;

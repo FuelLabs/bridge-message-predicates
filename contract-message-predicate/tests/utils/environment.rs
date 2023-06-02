@@ -13,11 +13,7 @@ use fuels::prelude::{
 use fuels::test_helpers::{setup_single_message, setup_test_client, Config};
 use fuels::tx::{Bytes32, Receipt};
 use fuels::types::coin_type::CoinType;
-use fuels::types::{
-    input::Input,
-    message::Message,
-    unresolved_bytes::{Data, UnresolvedBytes},
-};
+use fuels::types::{input::Input, message::Message, unresolved_bytes::UnresolvedBytes};
 
 use fuel_tx::{TxPointer, UtxoId, Word};
 
@@ -187,7 +183,7 @@ pub async fn relay_message_to_contract(
     let (mut tx, _, _) = builder::build_contract_message_tx(
         message,
         &vec![contract, gas_coin],
-        &vec![],
+        &[],
         TxParameters::default(),
     )
     .await;
@@ -207,7 +203,7 @@ pub async fn sign_and_call_tx(wallet: &WalletUnlocked, tx: &mut ScriptTransactio
 }
 
 /// Prefixes the given bytes with the test contract ID
-pub async fn prefix_contract_id(data: Vec<u8>) -> Vec<u8> {
+pub async fn prefix_contract_id(mut data: Vec<u8>) -> Vec<u8> {
     // Compute the test contract ID
     // let deploy_configuration = DeployConfiguration::default();
     // let compiled_contract =
@@ -221,7 +217,7 @@ pub async fn prefix_contract_id(data: Vec<u8>) -> Vec<u8> {
     // Turn contract id into array with the given data appended to it
     let test_contract_id: [u8; 32] = test_contract_id.into();
     let mut test_contract_id = test_contract_id.to_vec();
-    test_contract_id.append(&mut data.clone());
+    test_contract_id.append(&mut data);
     test_contract_id
 }
 
@@ -234,7 +230,7 @@ pub fn decode_hex(s: &str) -> Vec<u8> {
     data.unwrap()
 }
 
-/// Contructs test message data
+/// Constructs test message data
 pub async fn message_data(word: u64, bytes: &str, address: &str) -> Vec<u8> {
     let mut message_data = word.to_be_bytes().to_vec();
     message_data.append(&mut decode_hex(bytes));
