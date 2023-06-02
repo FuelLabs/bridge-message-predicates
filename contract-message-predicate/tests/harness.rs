@@ -86,7 +86,7 @@ mod success {
         let (wallet, test_contract, contract_input, coin_inputs, message_inputs) =
             env::setup_environment(vec![coin], vec![message1, message2]).await;
 
-        let mut tx = builder::build_contract_message_tx(
+        let (mut tx, _, _) = builder::build_contract_message_tx(
             message_inputs[0].clone(),
             &vec![
                 message_inputs[1].clone(),
@@ -140,6 +140,12 @@ mod fail {
     use fuels::prelude::{Address, AssetId, TxParameters};
     use fuels::test_helpers::DEFAULT_COIN_AMOUNT;
     use fuels::types::input::Input;
+    use fuels::types::{
+        coin::{Coin, CoinStatus::Unspent},
+        coin_type::CoinType,
+        transaction_builders::{ScriptTransactionBuilder, TransactionBuilder},
+        unresolved_bytes::UnresolvedBytes,
+    };
 
     pub const RANDOM_WORD: u64 = 54321u64;
     pub const RANDOM_WORD2: u64 = 123456u64;
@@ -175,6 +181,7 @@ mod fail {
             .get_coins(&predicate_root.into(), AssetId::default())
             .await
             .unwrap()[0];
+        /*
         let coin_as_message = Input::CoinPredicate {
             utxo_id: UtxoId::from(predicate_coin.utxo_id.clone()),
             owner: predicate_root,
@@ -185,7 +192,22 @@ mod fail {
             predicate: predicate_bytecode,
             predicate_data: vec![],
         };
-        let mut tx = builder::build_contract_message_tx(
+        */
+        let coin_as_message = Input::ResourcePredicate {
+            resource: CoinType::Coin(Coin {
+                amount: 100,
+                block_created: 0,
+                asset_id: AssetId::default(),
+                utxo_id: UtxoId::from(predicate_coin.utxo_id.clone()),
+                maturity: 0,
+                owner: predicate_root.into(),
+                status: Unspent,
+            }),
+            code: predicate_bytecode,
+            data: UnresolvedBytes::new(vec![]),
+        };
+
+        let (mut tx, _, _) = builder::build_contract_message_tx(
             coin_as_message,
             &vec![contract_input.clone(), coin_inputs[0].clone()],
             &vec![],
@@ -206,7 +228,7 @@ mod fail {
         let (wallet, _, _, coin_inputs, message_inputs) =
             env::setup_environment(vec![coin], vec![message]).await;
 
-        let mut tx = builder::build_contract_message_tx(
+        let (mut tx, _, _) = builder::build_contract_message_tx(
             message_inputs[0].clone(),
             &vec![coin_inputs[0].clone()],
             &vec![],
@@ -227,7 +249,7 @@ mod fail {
         let (wallet, _, contract_input, coin_inputs, message_inputs) =
             env::setup_environment(vec![coin], vec![message]).await;
 
-        let mut tx = builder::build_contract_message_tx(
+        let (mut tx, _, _) = builder::build_contract_message_tx(
             message_inputs[0].clone(),
             &vec![contract_input.clone(), coin_inputs[0].clone()],
             &vec![],
@@ -252,7 +274,7 @@ mod fail {
         let (wallet, _, contract_input, coin_inputs, message_inputs) =
             env::setup_environment(vec![coin], vec![message1, message2, message3]).await;
 
-        let mut tx = builder::build_contract_message_tx(
+        let (mut tx, _, _) = builder::build_contract_message_tx(
             message_inputs[0].clone(),
             &vec![
                 message_inputs[1].clone(),
@@ -278,7 +300,7 @@ mod fail {
         let (wallet, _, contract_input, coin_inputs, message_inputs) =
             env::setup_environment(vec![coin], vec![message]).await;
 
-        let tx = builder::build_contract_message_tx(
+        let (tx, tx_inputs, tx_outputs) = builder::build_contract_message_tx(
             message_inputs[0].clone(),
             &vec![contract_input.clone(), coin_inputs[0].clone()],
             &vec![],
@@ -287,12 +309,23 @@ mod fail {
         .await;
 
         // Modify the script bytecode
+        /*
         let mut modified_tx = ScriptTransaction::new(
             tx.inputs().clone(),
             tx.outputs().clone(),
             TxParameters::default(),
         )
         .with_script(vec![0u8, 1u8, 2u8, 3u8]);
+        */
+
+        let mut modified_tx = ScriptTransactionBuilder::prepare_transfer(
+            tx_inputs,
+            tx_outputs,
+            TxParameters::default(),
+        )
+        .set_script(vec![0u8, 1u8, 2u8, 3u8])
+        .build()
+        .unwrap();
 
         // Note: tx inputs[message, contract, coin], tx outputs[contract, change, variable]
         let _receipts = env::sign_and_call_tx(&wallet, &mut modified_tx).await;

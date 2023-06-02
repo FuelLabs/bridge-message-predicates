@@ -3,6 +3,7 @@ use crate::builder;
 use std::mem::size_of;
 use std::num::ParseIntError;
 use std::str::FromStr;
+use std::vec;
 
 use fuels::accounts::{fuel_crypto::SecretKey, Signer};
 use fuels::prelude::{
@@ -11,7 +12,12 @@ use fuels::prelude::{
 };
 use fuels::test_helpers::{setup_single_message, setup_test_client, Config};
 use fuels::tx::{Bytes32, Receipt};
-use fuels::types::{input::Input, message::Message};
+use fuels::types::coin_type::CoinType;
+use fuels::types::{
+    input::Input,
+    message::Message,
+    unresolved_bytes::{Data, UnresolvedBytes},
+};
 
 use fuel_tx::{TxPointer, UtxoId, Word};
 
@@ -108,6 +114,7 @@ pub async fn setup_environment(
     let test_contract = TestContract::new(test_contract_id.clone(), wallet.clone());
 
     // Build inputs for provided coins
+    /*
     let coin_inputs: Vec<Input> = all_coins
         .into_iter()
         .map(|coin| Input::CoinSigned {
@@ -120,8 +127,14 @@ pub async fn setup_environment(
             maturity: 0,
         })
         .collect();
+    */
+    let coin_inputs: Vec<Input> = all_coins
+        .into_iter()
+        .map(|coin| Input::resource_signed(CoinType::Coin(coin), 0))
+        .collect();
 
     // Build inputs for provided messages
+    /*
     let message_inputs: Vec<Input> = all_messages
         .iter()
         .map(|message| Input::MessagePredicate {
@@ -133,6 +146,15 @@ pub async fn setup_environment(
             data: message.data.clone(),
             predicate: predicate_bytecode.clone(),
             predicate_data: vec![],
+        })
+        .collect();
+    */
+    let message_inputs: Vec<Input> = all_messages
+        .iter()
+        .map(|message| Input::ResourcePredicate {
+            resource: CoinType::Message(message.clone()),
+            code: predicate_bytecode.clone(),
+            data: UnresolvedBytes::new(vec![]),
         })
         .collect();
 
@@ -162,7 +184,7 @@ pub async fn relay_message_to_contract(
     gas_coin: Input,
 ) -> Vec<Receipt> {
     // Build transaction
-    let mut tx = builder::build_contract_message_tx(
+    let (mut tx, _, _) = builder::build_contract_message_tx(
         message,
         &vec![contract, gas_coin],
         &vec![],
