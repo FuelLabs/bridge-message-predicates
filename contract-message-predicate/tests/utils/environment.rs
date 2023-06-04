@@ -104,11 +104,13 @@ pub async fn setup_environment(
 
     // Build inputs for provided messages
     let message_inputs: Vec<Input> = all_messages
-        .iter()
-        .map(|message| Input::ResourcePredicate {
-            resource: CoinType::Message(message.clone()),
-            code: predicate_bytecode.clone(),
-            data: UnresolvedBytes::default(),
+        .into_iter()
+        .map(|message| {
+            Input::resource_predicate(
+                CoinType::Message(message.clone()),
+                predicate_bytecode.clone(),
+                UnresolvedBytes::default(),
+            )
         })
         .collect();
 
