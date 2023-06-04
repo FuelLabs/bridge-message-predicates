@@ -1,19 +1,19 @@
 use crate::builder;
 
-use std::mem::size_of;
-use std::num::ParseIntError;
-use std::str::FromStr;
-use std::vec;
+use std::{mem::size_of, num::ParseIntError, str::FromStr, vec};
 
-use fuels::accounts::{fuel_crypto::SecretKey, Signer};
-use fuels::prelude::{
-    abigen, setup_custom_assets_coins, Address, AssetConfig, AssetId, Contract, LoadConfiguration,
-    Provider, ScriptTransaction, TxParameters, WalletUnlocked,
+use fuels::{
+    accounts::{fuel_crypto::SecretKey, Signer},
+    prelude::{
+        abigen, setup_custom_assets_coins, Address, AssetConfig, AssetId, Contract,
+        LoadConfiguration, Provider, ScriptTransaction, TxParameters, WalletUnlocked,
+    },
+    test_helpers::{setup_single_message, setup_test_client},
+    tx::{Bytes32, Receipt},
+    types::{
+        coin_type::CoinType, input::Input, message::Message, unresolved_bytes::UnresolvedBytes,
+    },
 };
-use fuels::test_helpers::{setup_single_message, setup_test_client};
-use fuels::tx::{Bytes32, Receipt};
-use fuels::types::coin_type::CoinType;
-use fuels::types::{input::Input, message::Message, unresolved_bytes::UnresolvedBytes};
 
 use fuel_tx::{TxPointer, UtxoId, Word};
 

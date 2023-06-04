@@ -9,12 +9,13 @@ use utils::builder;
 mod success {
     use std::str::FromStr;
 
-    use crate::utils::builder;
-    use crate::utils::environment as env;
-    use fuels::prelude::{Address, AssetId, ContractId, TxParameters};
-    use fuels::test_helpers::DEFAULT_COIN_AMOUNT;
-    use fuels::tx::Bytes32;
-    use fuels::types::Bits256;
+    use crate::utils::{builder, environment as env};
+    use fuels::{
+        prelude::{Address, AssetId, ContractId, TxParameters},
+        test_helpers::DEFAULT_COIN_AMOUNT,
+        tx::Bytes32,
+        types::Bits256,
+    };
 
     pub const RANDOM_WORD: u64 = 54321u64;
     pub const RANDOM_WORD2: u64 = 123456u64;
@@ -130,19 +131,19 @@ mod success {
 mod fail {
     use std::str::FromStr;
 
-    use crate::utils::builder;
-    use crate::utils::environment as env;
+    use crate::utils::{builder, environment as env};
 
-    use fuels::accounts::Account;
-    use fuels::prelude::Salt;
-    use fuels::prelude::{Address, AssetId, TxParameters};
-    use fuels::test_helpers::DEFAULT_COIN_AMOUNT;
-    use fuels::types::input::Input;
-    use fuels::types::{
-        coin::{Coin, CoinStatus::Unspent},
-        coin_type::CoinType,
-        transaction_builders::{ScriptTransactionBuilder, TransactionBuilder},
-        unresolved_bytes::UnresolvedBytes,
+    use fuels::{
+        accounts::Account,
+        prelude::{Address, AssetId, Salt, TxParameters},
+        test_helpers::DEFAULT_COIN_AMOUNT,
+        types::{
+            coin::{Coin, CoinStatus::Unspent},
+            coin_type::CoinType,
+            input::Input,
+            transaction_builders::{ScriptTransactionBuilder, TransactionBuilder},
+            unresolved_bytes::UnresolvedBytes,
+        },
     };
 
     pub const RANDOM_WORD: u64 = 54321u64;

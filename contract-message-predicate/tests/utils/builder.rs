@@ -1,14 +1,17 @@
 use std::collections::HashMap;
 
-use fuel_core_interfaces::common::prelude::Word;
 use fuel_tx::ConsensusParameters;
-use fuels::prelude::{Address, AssetId, ScriptTransaction, TxParameters};
-use fuels::tx::Bytes32;
-use fuels::types::coin_type::CoinType;
-use fuels::types::{
-    input::Input,
-    output::Output,
-    transaction_builders::{ScriptTransactionBuilder, TransactionBuilder},
+
+use fuels::{
+    accounts::fuel_crypto::fuel_types::Word,
+    prelude::{Address, AssetId, ScriptTransaction, TxParameters},
+    tx::Bytes32,
+    types::{
+        coin_type::CoinType,
+        input::Input,
+        output::Output,
+        transaction_builders::{ScriptTransactionBuilder, TransactionBuilder},
+    },
 };
 
 /// Build a message-to-contract transaction with the given input coins and outputs
