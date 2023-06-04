@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use fuel_core_interfaces::common::prelude::Word;
+use fuel_tx::ConsensusParameters;
 use fuels::prelude::{Address, AssetId, ScriptTransaction, TxParameters};
 use fuels::tx::Bytes32;
 use fuels::types::coin_type::CoinType;
@@ -28,28 +29,6 @@ pub async fn build_contract_message_tx(
     // Loop through inputs and add to lists
     let mut change = HashMap::new();
     for input in inputs {
-        /*
-        match input {
-            Input::CoinSigned {
-                asset_id, owner, ..
-            }
-            | Input::CoinPredicate {
-                asset_id, owner, ..
-            } => {
-                change.insert(asset_id, owner);
-            }
-            Input::Contract { .. } => {
-                tx_outputs.push(Output::Contract {
-                    input_index: tx_inputs.len() as u8,
-                    balance_root: Bytes32::zeroed(),
-                    state_root: Bytes32::zeroed(),
-                });
-            }
-            _ => {
-                // do nothing
-            }
-        }
-        */
         match input {
             Input::ResourceSigned { resource, .. } | Input::ResourcePredicate { resource, .. } => {
                 if let CoinType::Coin(coin) = resource {
@@ -82,13 +61,14 @@ pub async fn build_contract_message_tx(
     });
 
     // Create the transaction
-    /*
-    ScriptTransaction::new(tx_inputs, tx_outputs, params).with_script(script_bytecode)
-    */
-    let script_tx =
-        ScriptTransactionBuilder::prepare_transfer(tx_inputs.clone(), tx_outputs.clone(), params)
-            .set_script(script_bytecode)
-            .build()
-            .unwrap();
+    let script_tx = ScriptTransactionBuilder::default()
+        .set_inputs(tx_inputs.clone())
+        .set_outputs(tx_outputs.clone())
+        .set_tx_params(params)
+        .set_script(script_bytecode)
+        .set_consensus_parameters(ConsensusParameters::default())
+        .build()
+        .unwrap();
+
     (script_tx, tx_inputs, tx_outputs)
 }

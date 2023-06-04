@@ -179,18 +179,7 @@ mod fail {
             .get_coins(&predicate_root.into(), AssetId::default())
             .await
             .unwrap()[0];
-        /*
-        let coin_as_message = Input::CoinPredicate {
-            utxo_id: UtxoId::from(predicate_coin.utxo_id.clone()),
-            owner: predicate_root,
-            amount: 100,
-            asset_id: AssetId::default(),
-            tx_pointer: TxPointer::default(),
-            maturity: 0,
-            predicate: predicate_bytecode,
-            predicate_data: vec![],
-        };
-        */
+
         let coin_as_message = Input::ResourcePredicate {
             resource: CoinType::Coin(Coin {
                 amount: 100,
@@ -307,15 +296,6 @@ mod fail {
         .await;
 
         // Modify the script bytecode
-        /*
-        let mut modified_tx = ScriptTransaction::new(
-            tx.inputs().clone(),
-            tx.outputs().clone(),
-            TxParameters::default(),
-        )
-        .with_script(vec![0u8, 1u8, 2u8, 3u8]);
-        */
-
         let mut modified_tx = ScriptTransactionBuilder::prepare_transfer(
             tx_inputs,
             tx_outputs,

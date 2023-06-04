@@ -10,7 +10,7 @@ use fuels::prelude::{
     abigen, setup_custom_assets_coins, Address, AssetConfig, AssetId, Contract, LoadConfiguration,
     Provider, ScriptTransaction, TxParameters, WalletUnlocked,
 };
-use fuels::test_helpers::{setup_single_message, setup_test_client, Config};
+use fuels::test_helpers::{setup_single_message, setup_test_client};
 use fuels::tx::{Bytes32, Receipt};
 use fuels::types::coin_type::CoinType;
 use fuels::types::{input::Input, message::Message, unresolved_bytes::UnresolvedBytes};
@@ -80,27 +80,14 @@ pub async fn setup_environment(
         .collect();
 
     // Create the client and provider
-    let provider_config = Config::local_node();
-    let (client, _, consensus_params) = setup_test_client(
-        all_coins.clone(),
-        all_messages.clone(),
-        Some(provider_config),
-        None,
-    )
-    .await;
+    let (client, _, consensus_params) =
+        setup_test_client(all_coins.clone(), all_messages.clone(), None, None).await;
     let provider = Provider::new(client, consensus_params);
 
     // Add provider to wallet
     wallet.set_provider(provider.clone());
 
     // Deploy the target contract used for testing processing messages
-    // let test_contract_id = Contract::deploy(
-    //     TEST_RECEIVER_CONTRACT_BINARY,
-    //     &wallet,
-    //     DeployConfiguration::default(),
-    // )
-    // .await
-    // .unwrap();
     let test_contract_id =
         Contract::load_from(TEST_RECEIVER_CONTRACT_BINARY, LoadConfiguration::default())
             .unwrap()
@@ -110,47 +97,18 @@ pub async fn setup_environment(
     let test_contract = TestContract::new(test_contract_id.clone(), wallet.clone());
 
     // Build inputs for provided coins
-    /*
-    let coin_inputs: Vec<Input> = all_coins
-        .into_iter()
-        .map(|coin| Input::CoinSigned {
-            utxo_id: UtxoId::from(coin.utxo_id.clone()),
-            owner: Address::from(coin.owner.clone()),
-            amount: coin.amount.clone().into(),
-            asset_id: AssetId::from(coin.asset_id.clone()),
-            tx_pointer: TxPointer::default(),
-            witness_index: 0,
-            maturity: 0,
-        })
-        .collect();
-    */
     let coin_inputs: Vec<Input> = all_coins
         .into_iter()
         .map(|coin| Input::resource_signed(CoinType::Coin(coin), 0))
         .collect();
 
     // Build inputs for provided messages
-    /*
-    let message_inputs: Vec<Input> = all_messages
-        .iter()
-        .map(|message| Input::MessagePredicate {
-            message_id: message.message_id(),
-            sender: Address::from(message.sender.clone()),
-            recipient: Address::from(message.recipient.clone()),
-            amount: message.amount,
-            nonce: message.nonce,
-            data: message.data.clone(),
-            predicate: predicate_bytecode.clone(),
-            predicate_data: vec![],
-        })
-        .collect();
-    */
     let message_inputs: Vec<Input> = all_messages
         .iter()
         .map(|message| Input::ResourcePredicate {
             resource: CoinType::Message(message.clone()),
             code: predicate_bytecode.clone(),
-            data: UnresolvedBytes::new(vec![]),
+            data: UnresolvedBytes::default(),
         })
         .collect();
 
@@ -205,17 +163,12 @@ pub async fn sign_and_call_tx(wallet: &WalletUnlocked, tx: &mut ScriptTransactio
 /// Prefixes the given bytes with the test contract ID
 pub async fn prefix_contract_id(mut data: Vec<u8>) -> Vec<u8> {
     // Compute the test contract ID
-    // let deploy_configuration = DeployConfiguration::default();
-    // let compiled_contract =
-    //     Contract::load_contract(TEST_RECEIVER_CONTRACT_BINARY, deploy_configuration).unwrap();
-    // let (test_contract_id, _) = Contract::compute_contract_id_and_state_root(&compiled_contract);
     let test_contract_id =
         Contract::load_from(TEST_RECEIVER_CONTRACT_BINARY, LoadConfiguration::default())
             .unwrap()
             .contract_id();
 
     // Turn contract id into array with the given data appended to it
-    let test_contract_id: [u8; 32] = test_contract_id.into();
     let mut test_contract_id = test_contract_id.to_vec();
     test_contract_id.append(&mut data);
     test_contract_id
