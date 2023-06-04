@@ -14,12 +14,6 @@ The message to contract predicate relies on a script that performs only the foll
 
 ## Building From Source
 
-### Dependencies
-
-| dep  | version                                                                          |
-| ---- | -------------------------------------------------------------------------------- |
-| Forc | [0.35.0](https://fuellabs.github.io/sway/v0.35.0/introduction/installation.html) |
-
 ### Building
 
 Build:
