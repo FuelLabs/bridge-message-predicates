@@ -134,6 +134,7 @@ mod fail {
 
     use crate::utils::{builder, environment as env};
 
+    use fuel_tx::ConsensusParameters;
     use fuels::{
         accounts::Account,
         prelude::{Address, AssetId, Salt, TxParameters},
@@ -284,8 +285,7 @@ mod fail {
     }
 
     #[tokio::test]
-    // #[should_panic(expected = "The transaction contains a predicate which failed to validate")]
-    #[should_panic]
+    #[should_panic(expected = "The transaction contains a predicate which failed to validate")]
     async fn relay_message_with_invalid_script() {
         let message_data = env::prefix_contract_id(vec![]).await;
         let message = (100, message_data);
@@ -308,6 +308,7 @@ mod fail {
             TxParameters::default(),
         )
         .set_script(vec![0u8, 1u8, 2u8, 3u8])
+        .set_consensus_parameters(ConsensusParameters::default())
         .build()
         .unwrap();
 
