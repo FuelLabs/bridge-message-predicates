@@ -99,6 +99,8 @@ pub async fn setup_environment(
             .await
             .unwrap();
 
+    dbg!(Into::<ContractId>::into(&test_contract_id));
+
     let test_contract = TestContract::new(test_contract_id.clone(), wallet.clone());
 
     // Build inputs for provided coins

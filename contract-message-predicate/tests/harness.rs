@@ -50,7 +50,6 @@ mod success {
             coin_inputs[0].clone(),
         )
         .await;
-        dbg!("I fail before");
 
         // Verify test contract received the message with the correct data
         let test_contract_id: ContractId = test_contract.contract_id().into();

@@ -41,6 +41,7 @@ impl MessageReceiver for Contract {
     #[storage(read, write)]
     #[payable]
     fn process_message(msg_idx: u8) {
+        storage.counter.write(0);
         storage.counter.write(storage.counter.read() + 1);
 
         // Parse the message data
@@ -70,18 +71,22 @@ impl VerifyMessageData for Contract {
     fn test_counter() -> u64 {
         storage.counter.read()
     }
+
     #[storage(read)]
     fn test_data1() -> ContractId {
         storage.data1.read()
     }
+
     #[storage(read)]
     fn test_data2() -> u64 {
         storage.data2.read()
     }
+
     #[storage(read)]
     fn test_data3() -> b256 {
         storage.data3.read()
     }
+
     #[storage(read)]
     fn test_data4() -> Address {
         storage.data4.read()
