@@ -3,10 +3,10 @@ use crate::builder;
 use std::{mem::size_of, num::ParseIntError, str::FromStr, vec};
 
 use fuels::{
-    accounts::{fuel_crypto::SecretKey, Signer},
+    accounts::{fuel_crypto::SecretKey, wallet::WalletUnlocked, Signer},
     prelude::{
         abigen, setup_custom_assets_coins, Address, AssetConfig, AssetId, Contract,
-        LoadConfiguration, Provider, ScriptTransaction, TxParameters, WalletUnlocked,
+        LoadConfiguration, Provider, ScriptTransaction, TxParameters,
     },
     test_helpers::{setup_single_message, setup_test_client},
     tx::{Bytes32, Receipt},
@@ -15,7 +15,7 @@ use fuels::{
     },
 };
 
-use fuel_tx::{TxPointer, UtxoId, Word};
+use fuel_tx::{ConsensusParameters, ContractId, TxPointer, UtxoId, Word};
 
 abigen!(Contract(
     name = "TestContract",
@@ -62,18 +62,22 @@ pub async fn setup_environment(
     let all_coins = setup_custom_assets_coins(wallet.address(), &asset_configs[..]);
 
     // Generate messages
-    let message_nonce: Word = Word::default();
     let message_sender = Address::from_str(MESSAGE_SENDER_ADDRESS).unwrap();
     let predicate_bytecode = fuel_contract_message_predicate::predicate_bytecode();
-    let predicate_root = Address::from(fuel_contract_message_predicate::predicate_root());
+    dbg!(&predicate_bytecode);
+    let predicate_root = Address::from(fuel_contract_message_predicate::predicate_root(
+        &ConsensusParameters::default(),
+    ));
+    dbg!(&predicate_root);
     let all_messages: Vec<Message> = messages
         .iter()
-        .flat_map(|message| {
+        .enumerate()
+        .flat_map(|(counter, message)| {
             vec![setup_single_message(
                 &message_sender.into(),
                 &predicate_root.into(),
                 message.0,
-                message_nonce.into(),
+                (counter as u64).into(),
                 message.1.clone(),
             )]
         })
@@ -85,7 +89,7 @@ pub async fn setup_environment(
     let provider = Provider::new(client, consensus_params);
 
     // Add provider to wallet
-    wallet.set_provider(provider.clone());
+    wallet.set_provider(provider);
 
     // Deploy the target contract used for testing processing messages
     let test_contract_id =
@@ -94,6 +98,7 @@ pub async fn setup_environment(
             .deploy(&wallet, TxParameters::default())
             .await
             .unwrap();
+
     let test_contract = TestContract::new(test_contract_id.clone(), wallet.clone());
 
     // Build inputs for provided coins
@@ -107,7 +112,7 @@ pub async fn setup_environment(
         .into_iter()
         .map(|message| {
             Input::resource_predicate(
-                CoinType::Message(message.clone()),
+                CoinType::Message(message),
                 predicate_bytecode.clone(),
                 UnresolvedBytes::default(),
             )
