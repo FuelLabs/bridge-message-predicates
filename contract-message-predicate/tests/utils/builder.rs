@@ -55,7 +55,7 @@ pub async fn build_contract_message_tx(
         });
     }
 
-    dbg!(&tx_inputs);
+    // dbg!(&tx_inputs);
 
     // Add variable output
     tx_outputs.push(Output::Variable {
@@ -74,7 +74,8 @@ pub async fn build_contract_message_tx(
         .build()
         .unwrap();
 
-    dbg!(&script_tx.tx.inputs());
+    // dbg!(&script_tx.tx.inputs());
+    dbg!(script_tx.clone());
 
     (script_tx, tx_inputs, tx_outputs)
 }

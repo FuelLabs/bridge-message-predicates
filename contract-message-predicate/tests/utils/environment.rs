@@ -64,11 +64,11 @@ pub async fn setup_environment(
     // Generate messages
     let message_sender = Address::from_str(MESSAGE_SENDER_ADDRESS).unwrap();
     let predicate_bytecode = fuel_contract_message_predicate::predicate_bytecode();
-    dbg!(&predicate_bytecode);
+    // dbg!(&predicate_bytecode);
     let predicate_root = Address::from(fuel_contract_message_predicate::predicate_root(
         &ConsensusParameters::default(),
     ));
-    dbg!(&predicate_root);
+    // dbg!(&predicate_root);
     let all_messages: Vec<Message> = messages
         .iter()
         .enumerate()
@@ -99,7 +99,7 @@ pub async fn setup_environment(
             .await
             .unwrap();
 
-    dbg!(Into::<ContractId>::into(&test_contract_id));
+    // dbg!(Into::<ContractId>::into(&test_contract_id));
 
     let test_contract = TestContract::new(test_contract_id.clone(), wallet.clone());
 

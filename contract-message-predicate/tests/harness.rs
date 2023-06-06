@@ -32,10 +32,7 @@ mod success {
         let data_bytes = Bits256(Bytes32::from_str(RANDOM_SALT).unwrap().into());
         let data_address = Address::from_str(RANDOM_SALT2).unwrap();
 
-        let mut message_data = data_word.to_be_bytes().to_vec();
-        message_data.append(&mut env::decode_hex(RANDOM_SALT));
-        message_data.append(&mut env::decode_hex(RANDOM_SALT2));
-        let message_data = env::prefix_contract_id(message_data).await;
+        let message_data = env::message_data(data_word, RANDOM_SALT, RANDOM_SALT2).await;
 
         let message = (100, message_data);
         let coin = (DEFAULT_COIN_AMOUNT, AssetId::default());
@@ -98,6 +95,7 @@ mod success {
             TxParameters::default(),
         )
         .await;
+        // dbg!(tx.clone());
 
         // Note: tx inputs[message1, message2, message3, contract, coin], tx outputs[change, variable]
         let _receipts = env::sign_and_call_tx(&wallet, &mut tx).await;

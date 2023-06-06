@@ -41,7 +41,7 @@ impl MessageReceiver for Contract {
     #[storage(read, write)]
     #[payable]
     fn process_message(msg_idx: u8) {
-        storage.counter.write(0);
+        storage.counter.write(0); // Temporary fix for: https://github.com/FuelLabs/sway/issues/4634
         storage.counter.write(storage.counter.read() + 1);
 
         // Parse the message data
