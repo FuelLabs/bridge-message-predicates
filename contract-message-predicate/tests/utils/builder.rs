@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use fuel_tx::{field::Inputs, ConsensusParameters, Output};
+use fuel_tx::{ConsensusParameters, Output};
 
 use fuels::{
     accounts::fuel_crypto::fuel_types::Word,
@@ -55,8 +55,6 @@ pub async fn build_contract_message_tx(
         });
     }
 
-    // dbg!(&tx_inputs);
-
     // Add variable output
     tx_outputs.push(Output::Variable {
         to: Address::default(),
@@ -73,9 +71,6 @@ pub async fn build_contract_message_tx(
         .set_consensus_parameters(ConsensusParameters::default())
         .build()
         .unwrap();
-
-    // dbg!(&script_tx.tx.inputs());
-    dbg!(script_tx.clone());
 
     (script_tx, tx_inputs, tx_outputs)
 }

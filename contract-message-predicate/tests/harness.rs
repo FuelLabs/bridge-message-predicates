@@ -95,7 +95,6 @@ mod success {
             TxParameters::default(),
         )
         .await;
-        // dbg!(tx.clone());
 
         // Note: tx inputs[message1, message2, message3, contract, coin], tx outputs[change, variable]
         let _receipts = env::sign_and_call_tx(&wallet, &mut tx).await;
