@@ -9,13 +9,3 @@ license = "Apache-2.0"
 repository = "https://github.com/FuelLabs/bridge-message-predicates"
 rust-version = "1.69.0"
 version = "0.1.4"
-
-[patch.crates-io]
-fuel-core = { git = "https://github.com/FuelLabs/fuel-core", branch = "feature/data-length-fix" }
-fuel-core-client = { git = "https://github.com/FuelLabs/fuel-core", branch = "feature/data-length-fix" }
-fuel-core-chain-config = { git = "https://github.com/FuelLabs/fuel-core", branch = "feature/data-length-fix" }
-fuel-vm = { git = "https://github.com/FuelLabs/fuel-vm", branch = "feature/data-length-fix" }
-fuel-types = { git = "https://github.com/FuelLabs/fuel-vm", branch = "feature/data-length-fix" }
-fuel-tx = { git = "https://github.com/FuelLabs/fuel-vm", branch = "feature/data-length-fix" }
-
-fuels = { git = "https://github.com/FuelLabs/fuels-rs", branch = "bugfix/right-message-type" }
